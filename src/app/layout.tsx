@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "OmvarldsRadar - AI-driven omvarldsbevakning for svensk offentlig sektor",
+  title: "OmvärldsRadar - AI-driven omvärldsbevakning för svensk offentlig sektor",
   description:
-    "AI-driven omvarldsbevakning och analys for svenska kommuner och regioner. Bevaka EU-regelverk, nationella reformer och globala trender.",
+    "AI-driven omvärldsbevakning och analys för svenska kommuner och regioner. Bevaka EU-regelverk, nationella reformer och globala trender.",
 };
 
 export default function RootLayout({

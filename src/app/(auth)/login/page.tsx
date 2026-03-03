@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Radar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +17,23 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const router = useRouter();
+
+  const isDevMode =
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith("http");
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return;
     setIsLoading(true);
+
+    if (isDevMode) {
+      // Dev mode: skip auth, go straight to dashboard
+      router.push("/");
+      return;
+    }
+
     // Simulate sending magic link
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsLoading(false);
@@ -36,11 +49,11 @@ export default function LoginPage() {
               <Radar className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              OmvarldsRadar
+              OmvärldsRadar
             </h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            AI-driven omvarldsbevakning for offentlig sektor
+            AI-driven omvärldsbevakning för offentlig sektor
           </p>
         </div>
 
@@ -48,7 +61,7 @@ export default function LoginPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-lg">Logga in</CardTitle>
             <CardDescription>
-              Ange din e-postadress for att fa en inloggningslanke
+              Ange din e-postadress för att få en inloggningslänk
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -71,10 +84,10 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    Inloggningslanke skickad!
+                    Inloggningslänk skickad!
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Kontrollera din inkorg pa{" "}
+                    Kontrollera din inkorg på{" "}
                     <span className="font-medium text-foreground">{email}</span>
                   </p>
                 </div>
@@ -146,9 +159,21 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
+        {isDevMode && (
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push("/")}
+            >
+              Demo-läge → Gå till dashboard
+            </Button>
+          </div>
+        )}
+
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Genom att logga in godkanner du vara{" "}
-          <span className="underline cursor-pointer">anvandarvillkor</span> och{" "}
+          Genom att logga in godkänner du våra{" "}
+          <span className="underline cursor-pointer">användarvillkor</span> och{" "}
           <span className="underline cursor-pointer">integritetspolicy</span>.
         </p>
       </div>

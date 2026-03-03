@@ -17,21 +17,21 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const focusAreas = [
-  { id: "eu-regelverk", label: "EU-regelverk", checked: true },
-  { id: "teknik", label: "Teknologiskiften", checked: true },
-  { id: "sakerhet", label: "Sakerhetspolitik", checked: true },
-  { id: "reformer", label: "Nationella reformer", checked: true },
-  { id: "demografi", label: "Demografi", checked: false },
-  { id: "klimat", label: "Klimat och miljo", checked: true },
-  { id: "ekonomi", label: "Ekonomi och finanser", checked: false },
-  { id: "halsa", label: "Folkhalsa", checked: false },
-  { id: "utbildning", label: "Utbildning", checked: false },
-  { id: "infrastruktur", label: "Infrastruktur", checked: true },
+  { id: "styrning-demokrati", label: "Styrning & Demokrati", checked: true },
+  { id: "digitalisering-teknik", label: "Digitalisering & Teknik", checked: true },
+  { id: "valfard-omsorg", label: "Välfärd & Omsorg", checked: true },
+  { id: "utbildning-kompetens", label: "Utbildning & Kompetens", checked: false },
+  { id: "klimat-miljo-samhallsbyggnad", label: "Klimat, Miljö & Samhällsbyggnad", checked: true },
+  { id: "trygghet-beredskap", label: "Trygghet & Beredskap", checked: true },
+  { id: "ekonomi-resurser", label: "Ekonomi & Resurser", checked: false },
+  { id: "arbetsgivare-organisation", label: "Arbetsgivare & Organisation", checked: false },
+  { id: "samhalle-medborgare", label: "Samhälle & Medborgare", checked: false },
+  { id: "innovation-omstallning", label: "Innovation & Omställning", checked: true },
 ];
 
 const teamMembers = [
   {
-    name: "Par Levander",
+    name: "Pär Levander",
     email: "par.levander@critero.se",
     role: "Admin",
     initials: "PL",
@@ -39,26 +39,26 @@ const teamMembers = [
   {
     name: "Anna Svensson",
     email: "anna.svensson@critero.se",
-    role: "Anvandare",
+    role: "Användare",
     initials: "AS",
   },
   {
     name: "Erik Johansson",
     email: "erik.johansson@kommun.se",
-    role: "Anvandare",
+    role: "Användare",
     initials: "EJ",
   },
   {
     name: "Maria Andersson",
     email: "maria.andersson@kommun.se",
-    role: "Anvandare",
+    role: "Användare",
     initials: "MA",
   },
 ];
 
 const roleColors: Record<string, string> = {
   Admin: "bg-blue-100 text-blue-700 border-blue-200",
-  Anvandare: "bg-slate-100 text-slate-700 border-slate-200",
+  "Användare": "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export default function SettingsPage() {
@@ -87,7 +87,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Installningar</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Inställningar</h1>
         <p className="text-muted-foreground">
           Hantera din organisation, team och notifieringar
         </p>
@@ -115,7 +115,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">Organisationsinformation</CardTitle>
               <CardDescription>
-                Grundlaggande information om din organisation
+                Grundläggande information om din organisation
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -153,11 +153,11 @@ export default function SettingsPage() {
                   value={orgSize}
                   onChange={(e) => setOrgSize(e.target.value)}
                 >
-                  <option value="liten">Liten (under 15 000 invanare)</option>
+                  <option value="liten">Liten (under 15 000 invånare)</option>
                   <option value="medel">
-                    Medel (15 000 - 50 000 invanare)
+                    Medel (15 000 - 50 000 invånare)
                   </option>
-                  <option value="stor">Stor (over 50 000 invanare)</option>
+                  <option value="stor">Stor (över 50 000 invånare)</option>
                 </select>
               </div>
             </CardContent>
@@ -165,9 +165,9 @@ export default function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Fokusomraden</CardTitle>
+              <CardTitle className="text-base">Fokusområden</CardTitle>
               <CardDescription>
-                Valj vilka amnesomraden som ar mest relevanta for din
+                Välj vilka ämnesområden som är mest relevanta för din
                 organisation. Bevakningsresultaten anpassas efter dina val.
               </CardDescription>
             </CardHeader>
@@ -197,11 +197,11 @@ export default function SettingsPage() {
               className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
             >
               <Save className="mr-1.5 h-4 w-4" />
-              Spara andringar
+              Spara ändringar
             </Button>
             {saved && (
               <span className="text-sm text-green-600 font-medium">
-                Andringarna har sparats
+                Ändringarna har sparats
               </span>
             )}
           </div>
@@ -213,7 +213,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">Teammedlemmar</CardTitle>
               <CardDescription>
-                Hantera vilka som har tillgang till OmvarldsRadar i din
+                Hantera vilka som har tillgång till OmvärldsRadar i din
                 organisation
               </CardDescription>
             </CardHeader>
@@ -250,7 +250,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">Bjud in teammedlem</CardTitle>
               <CardDescription>
-                Skicka en inbjudan till en ny anvandare
+                Skicka en inbjudan till en ny användare
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -277,7 +277,7 @@ export default function SettingsPage() {
                 E-postnotifieringar
               </CardTitle>
               <CardDescription>
-                Valj vilka notifieringar du vill fa via e-post
+                Välj vilka notifieringar du vill få via e-post
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -285,8 +285,8 @@ export default function SettingsPage() {
                 <div>
                   <p className="font-medium">Veckobriefing</p>
                   <p className="text-sm text-muted-foreground">
-                    En sammanfattning av veckans viktigaste omvarldsforandringar
-                    varje mandag morgon
+                    En sammanfattning av veckans viktigaste omvärldsförändringar
+                    varje måndag morgon
                   </p>
                 </div>
                 <button
@@ -307,7 +307,7 @@ export default function SettingsPage() {
                 <div>
                   <p className="font-medium">Akuta varningar</p>
                   <p className="text-sm text-muted-foreground">
-                    Omedelbar notifiering vid kritiska forandringar som paverkar
+                    Omedelbar notifiering vid kritiska förändringar som påverkar
                     din kommun direkt
                   </p>
                 </div>
@@ -329,8 +329,8 @@ export default function SettingsPage() {
                 <div>
                   <p className="font-medium">Trendsammanfattning</p>
                   <p className="text-sm text-muted-foreground">
-                    En manadsvis oversikt over trender och utvecklingar i dina
-                    bevakningsomraden
+                    En månadsvis översikt över trender och utvecklingar i dina
+                    bevakningsområden
                   </p>
                 </div>
                 <button
@@ -355,11 +355,11 @@ export default function SettingsPage() {
               className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
             >
               <Save className="mr-1.5 h-4 w-4" />
-              Spara installningar
+              Spara inställningar
             </Button>
             {saved && (
               <span className="text-sm text-green-600 font-medium">
-                Installningarna har sparats
+                Inställningarna har sparats
               </span>
             )}
           </div>

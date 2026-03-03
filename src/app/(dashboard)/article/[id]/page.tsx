@@ -27,57 +27,59 @@ import { Separator } from "@/components/ui/separator";
 const articleData = {
   id: "1",
   title:
-    "NIS2-direktivet: Nya krav pa cybersakerhet for offentlig sektor trader i kraft",
+    "NIS2-direktivet: Nya krav på cybersäkerhet för offentlig sektor träder i kraft",
   source: "Riksdagen.se",
   sourceUrl: "https://riksdagen.se",
   publishedDate: "2026-03-01",
-  category: "EU-regelverk",
-  subcategories: ["Cybersakerhet", "Offentlig sektor", "Kritisk infrastruktur"],
-  impact: "KRITISK",
+  category: "Digitalisering & Teknik",
+  subcategory: "Cybersäkerhet",
+  paverkan: "Direkt reglering",
+  atgard: "Agera nu",
+  tidshorisont: "Akut (0-3 mån)",
   relevance: 94,
-  content: `NIS2-direktivet (Network and Information Security Directive 2) ar EU:s uppdaterade regelverk for cybersakerhet som traeder i kraft under 2026. Direktivet ersatter det tidigare NIS-direktivet och innebar avsevart skarpta krav for offentlig sektor.
+  content: `NIS2-direktivet (Network and Information Security Directive 2) är EU:s uppdaterade regelverk för cybersäkerhet som träder i kraft under 2026. Direktivet ersätter det tidigare NIS-direktivet och innebär avsevärt skärpta krav för offentlig sektor.
 
-For svenska kommuner och regioner innebar detta flera konkreta forandringar. Alla organisationer som klassar som leverantorer av samhallsviktiga tjanster maste genomfora systematiska riskanalyser av sina informationssystem. Darutover stalls krav pa implementering av tekniska och organisatoriska skyddsatgarder.
+För svenska kommuner och regioner innebär detta flera konkreta förändringar. Alla organisationer som klassar som leverantörer av samhällsviktiga tjänster måste genomföra systematiska riskanalyser av sina informationssystem. Därutöver ställs krav på implementering av tekniska och organisatoriska skyddsåtgärder.
 
-En viktig nyhet ar att NIS2 utvidgar kretsen av organisationer som omfattas. Tidigare var det framst storre aktorer som berordes, men nu inkluderas aven mindre kommuner och offentliga verksamheter. Direktivet staller aven krav pa incidentrapportering inom 24 timmar.
+En viktig nyhet är att NIS2 utvidgar kretsen av organisationer som omfattas. Tidigare var det främst större aktörer som berördes, men nu inkluderas även mindre kommuner och offentliga verksamheter. Direktivet ställer även krav på incidentrapportering inom 24 timmar.
 
-For att uppfylla kraven behover kommuner och regioner bland annat investera i:
-- Systematisk riskhantering och sarbarhetsanalyser
-- Tekniska skyddsatgarder som kryptering och atkomstkontroll
+För att uppfylla kraven behöver kommuner och regioner bland annat investera i:
+- Systematisk riskhantering och sårbarhetsanalyser
+- Tekniska skyddsåtgärder som kryptering och åtkomstkontroll
 - Incidenthanteringsprocesser och rapporteringsrutiner
-- Utbildning och kompetensuppbyggnad inom cybersakerhet
-- Leverantorssakerhet och kontroll av tredjepartsrisker
+- Utbildning och kompetensuppbyggnad inom cybersäkerhet
+- Leverantörssäkerhet och kontroll av tredjepartsrisker
 
-Regeringen har givit MSB (Myndigheten for samhallsskydd och beredskap) i uppdrag att vara tillsynsmyndighet for NIS2 i Sverige. MSB arbetar for narvarande med att ta fram detaljerade foreskrifter och vagledning for hur direktivet ska implementeras i svenska forhallanden.`,
+Regeringen har givit MSB (Myndigheten för samhällsskydd och beredskap) i uppdrag att vara tillsynsmyndighet för NIS2 i Sverige. MSB arbetar för närvarande med att ta fram detaljerade föreskrifter och vägledning för hur direktivet ska implementeras i svenska förhållanden.`,
   aiAnalysis: {
     summary:
-      "NIS2-direktivet innebar kraftigt skarpta cybersakerhetskrav for alla kommuner och regioner. Direktivet utvidgar kretsen av organisationer som berors och staller krav pa riskanalyser, tekniska skyddsatgarder, incidentrapportering och personalutbildning. Deadline for forsta rapportering ar Q3 2026.",
+      "NIS2-direktivet innebär kraftigt skärpta cybersäkerhetskrav för alla kommuner och regioner. Direktivet utvidgar kretsen av organisationer som berörs och ställer krav på riskanalyser, tekniska skyddsåtgärder, incidentrapportering och personalutbildning. Deadline för första rapportering är Q3 2026.",
     impactAnalysis: {
       liten: {
         label: "Liten kommun",
-        description: "Under 15 000 invanare",
-        impact: "HOG",
+        description: "Under 15 000 invånare",
+        impact: "HÖG",
         details:
-          "Sma kommuner saknar ofta dedikerade IT-sakerhetsresurser. Kravs samverkan med andra kommuner eller extern expertis. Begransad budget kan gora det svarare att implementera samtliga krav i tid.",
+          "Små kommuner saknar ofta dedikerade IT-säkerhetsresurser. Kräver samverkan med andra kommuner eller extern expertis. Begränsad budget kan göra det svårare att implementera samtliga krav i tid.",
       },
       medel: {
         label: "Medelstor kommun",
-        description: "15 000 - 50 000 invanare",
+        description: "15 000 - 50 000 invånare",
         impact: "KRITISK",
         details:
-          "Medelstora kommuner har ofta mer komplex IT-infrastruktur men inte alltid proportionerlig cybersakerhetskompetens. Risk for sarbarheter i aldre system. Behov av systematisk genomgang och prioritering.",
+          "Medelstora kommuner har ofta mer komplex IT-infrastruktur men inte alltid proportionerlig cybersäkerhetskompetens. Risk för sårbarheter i äldre system. Behov av systematisk genomgång och prioritering.",
       },
       stor: {
         label: "Stor kommun / Region",
-        description: "Over 50 000 invanare",
+        description: "Över 50 000 invånare",
         impact: "KRITISK",
         details:
-          "Stora organisationer har fler kritiska system och storre angreppsytor. Kraver omfattande riskanalyser och investeringar. Dock ofta battre formagor att hantera implementeringen tack vare storre resurser.",
+          "Stora organisationer har fler kritiska system och större angreppsytor. Kräver omfattande riskanalyser och investeringar. Dock ofta bättre förmågor att hantera implementeringen tack vare större resurser.",
       },
     },
     actions: [
       {
-        text: "Genomfor en NIS2 gap-analys for att identifiera brister",
+        text: "Genomför en NIS2 gap-analys för att identifiera brister",
         done: false,
       },
       {
@@ -93,44 +95,78 @@ Regeringen har givit MSB (Myndigheten for samhallsskydd och beredskap) i uppdrag
         done: false,
       },
       {
-        text: "Anmal organisationen till MSB som tillsynsmyndighet",
+        text: "Anmäl organisationen till MSB som tillsynsmyndighet",
         done: false,
       },
       {
-        text: "Infor incidentrapporteringsrutin (24 timmars krav)",
+        text: "Inför incidentrapporteringsrutin (24 timmars krav)",
         done: false,
       },
       {
-        text: "Planera utbildning for personal och ledning",
+        text: "Planera utbildning för personal och ledning",
         done: false,
       },
     ],
     frameworks: [
-      { name: "WEF Global Risks", tags: ["Cybersakerhet", "Teknologirisk"] },
+      { name: "WEF Global Risks", tags: ["Cybersäkerhet", "Teknologirisk"] },
       { name: "Kairos Future TAIDA", tags: ["Hot", "Beslut", "Agerande"] },
-      { name: "DIGG/eSam", tags: ["Informationssakerhet", "Digital mognad"] },
+      { name: "DIGG/eSam", tags: ["Informationssäkerhet", "Digital mognad"] },
     ],
     keyDates: [
-      { date: "2026-04-01", event: "Anmalan till MSB" },
-      { date: "2026-06-30", event: "Forsta riskanalys klar" },
-      { date: "2026-09-30", event: "Forsta statusrapport till MSB" },
-      { date: "2027-01-01", event: "Alla tekniska skyddsatgarder pa plats" },
+      { date: "2026-04-01", event: "Anmälan till MSB" },
+      { date: "2026-06-30", event: "Första riskanalys klar" },
+      { date: "2026-09-30", event: "Första statusrapport till MSB" },
+      { date: "2027-01-01", event: "Alla tekniska skyddsåtgärder på plats" },
     ],
   },
 };
 
 const impactColors: Record<string, string> = {
   KRITISK: "bg-red-100 text-red-700 border-red-200",
-  HOG: "bg-orange-100 text-orange-700 border-orange-200",
+  "HÖG": "bg-orange-100 text-orange-700 border-orange-200",
   MEDEL: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  LAG: "bg-green-100 text-green-700 border-green-200",
+  "LÅG": "bg-green-100 text-green-700 border-green-200",
 };
 
 const impactCardColors: Record<string, string> = {
   KRITISK: "border-l-red-500",
-  HOG: "border-l-orange-500",
+  "HÖG": "border-l-orange-500",
   MEDEL: "border-l-yellow-500",
-  LAG: "border-l-green-500",
+  "LÅG": "border-l-green-500",
+};
+
+const categoryColors: Record<string, string> = {
+  "Styrning & Demokrati": "bg-blue-100 text-blue-700 border-blue-200",
+  "Digitalisering & Teknik": "bg-purple-100 text-purple-700 border-purple-200",
+  "Välfärd & Omsorg": "bg-pink-100 text-pink-700 border-pink-200",
+  "Utbildning & Kompetens": "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "Klimat, Miljö & Samhällsbyggnad": "bg-teal-100 text-teal-700 border-teal-200",
+  "Trygghet & Beredskap": "bg-slate-100 text-slate-700 border-slate-200",
+  "Ekonomi & Resurser": "bg-amber-100 text-amber-700 border-amber-200",
+  "Arbetsgivare & Organisation": "bg-orange-100 text-orange-700 border-orange-200",
+  "Samhälle & Medborgare": "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "Innovation & Omställning": "bg-cyan-100 text-cyan-700 border-cyan-200",
+};
+
+const paverkanColors: Record<string, string> = {
+  "Direkt reglering": "bg-red-100 text-red-700 border-red-200",
+  "Indirekt påverkan": "bg-orange-100 text-orange-700 border-orange-200",
+  "Möjlighet": "bg-green-100 text-green-700 border-green-200",
+  "Risk/hot": "bg-rose-100 text-rose-700 border-rose-200",
+};
+
+const atgardColors: Record<string, string> = {
+  "Agera nu": "bg-red-100 text-red-700 border-red-200",
+  "Planera": "bg-yellow-100 text-yellow-700 border-yellow-200",
+  "Bevaka": "bg-blue-100 text-blue-700 border-blue-200",
+  "Inspireras": "bg-emerald-100 text-emerald-700 border-emerald-200",
+};
+
+const tidshorisontColors: Record<string, string> = {
+  "Akut (0-3 mån)": "bg-red-50 text-red-600 border-red-200",
+  "Kort sikt (3-12 mån)": "bg-orange-50 text-orange-600 border-orange-200",
+  "Medellång sikt (1-3 år)": "bg-blue-50 text-blue-600 border-blue-200",
+  "Lång sikt (3+ år)": "bg-slate-50 text-slate-600 border-slate-200",
 };
 
 const frameworkColors: Record<string, string> = {
@@ -149,7 +185,7 @@ export default function ArticleDetailPage() {
       <Button variant="ghost" size="sm" asChild>
         <Link href="/feed">
           <ArrowLeft className="mr-1 h-4 w-4" />
-          Tillbaka till flodet
+          Tillbaka till flödet
         </Link>
       </Button>
 
@@ -158,21 +194,34 @@ export default function ArticleDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant="outline"
-            className={impactColors[article.impact]}
-          >
-            {article.impact}
-          </Badge>
-          <Badge
-            variant="outline"
-            className="bg-blue-100 text-blue-700 border-blue-200"
+            className={
+              categoryColors[article.category] ||
+              "bg-gray-100 text-gray-700 border-gray-200"
+            }
           >
             {article.category}
           </Badge>
-          {article.subcategories.map((sub) => (
-            <Badge key={sub} variant="secondary" className="text-xs">
-              {sub}
-            </Badge>
-          ))}
+          <Badge variant="secondary" className="text-xs">
+            {article.subcategory}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={paverkanColors[article.paverkan]}
+          >
+            {article.paverkan}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={atgardColors[article.atgard]}
+          >
+            {article.atgard}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={tidshorisontColors[article.tidshorisont]}
+          >
+            {article.tidshorisont}
+          </Badge>
         </div>
 
         <h1 className="text-2xl font-bold leading-tight lg:text-3xl">
@@ -219,7 +268,7 @@ export default function ArticleDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Artikelinnehall</CardTitle>
+              <CardTitle className="text-base">Artikelinnehåll</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
@@ -243,7 +292,7 @@ export default function ArticleDetailPage() {
                 <CardTitle className="text-base">AI-analys</CardTitle>
               </div>
               <CardDescription>
-                Automatiskt genererad analys baserad pa WEF, Kairos Future och
+                Automatiskt genererad analys baserad på WEF, Kairos Future och
                 DIGG-ramverken
               </CardDescription>
             </CardHeader>
@@ -261,14 +310,14 @@ export default function ArticleDetailPage() {
               {/* Impact per municipality size */}
               <div>
                 <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Paverkan per kommunstorlek
+                  Påverkan per kommunstorlek
                 </h3>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {Object.entries(analysis.impactAnalysis).map(
                     ([key, data]) => (
                       <Card
                         key={key}
-                        className={`border-l-4 ${impactCardColors[data.impact]}`}
+                        className={`border-l-4 ${impactCardColors[data.impact] || "border-l-gray-500"}`}
                       >
                         <CardContent className="space-y-2 pt-4">
                           <div className="flex items-center gap-2">
@@ -282,7 +331,7 @@ export default function ArticleDetailPage() {
                           </p>
                           <Badge
                             variant="outline"
-                            className={impactColors[data.impact]}
+                            className={impactColors[data.impact] || "bg-gray-100 text-gray-700 border-gray-200"}
                           >
                             {data.impact}
                           </Badge>
@@ -301,7 +350,7 @@ export default function ArticleDetailPage() {
               {/* Recommended actions */}
               <div>
                 <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Rekommenderade atgarder
+                  Rekommenderade åtgärder
                 </h3>
                 <div className="space-y-2">
                   {analysis.actions.map((action, index) => (
@@ -335,7 +384,7 @@ export default function ArticleDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm text-muted-foreground font-medium">
-                Relevansbedomning
+                Relevansbedömning
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -369,8 +418,46 @@ export default function ArticleDetailPage() {
                   </span>
                 </div>
                 <p className="text-center text-xs text-muted-foreground">
-                  Baserat pa din kommunprofil och valda fokusomraden
+                  Baserat på din kommunprofil och valda fokusområden
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Cross-cutting lenses */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Analysdimensioner
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Tidshorisont</p>
+                <Badge
+                  variant="outline"
+                  className={tidshorisontColors[article.tidshorisont]}
+                >
+                  {article.tidshorisont}
+                </Badge>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Påverkan</p>
+                <Badge
+                  variant="outline"
+                  className={paverkanColors[article.paverkan]}
+                >
+                  {article.paverkan}
+                </Badge>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Åtgärd</p>
+                <Badge
+                  variant="outline"
+                  className={atgardColors[article.atgard]}
+                >
+                  {article.atgard}
+                </Badge>
               </div>
             </CardContent>
           </Card>
@@ -437,11 +524,11 @@ export default function ArticleDetailPage() {
             <CardContent className="pt-4">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
-                <span className="font-semibold">Kritisk paverkan</span>
+                <span className="font-semibold">Kritisk påverkan</span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Denna forandring kraver omedelbar uppmarksamhet och
-                agerande fran kommunledningen. Se rekommenderade atgarder.
+                Denna förändring kräver omedelbar uppmärksamhet och
+                agerande från kommunledningen. Se rekommenderade åtgärder.
               </p>
             </CardContent>
           </Card>

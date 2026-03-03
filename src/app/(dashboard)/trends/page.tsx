@@ -35,12 +35,16 @@ const weeklyData = [
 ];
 
 const categoryData = [
-  { name: "EU-regelverk", value: 34, color: "#3b82f6" },
-  { name: "Teknologiskiften", value: 22, color: "#8b5cf6" },
-  { name: "Sakerhetspolitik", value: 18, color: "#64748b" },
-  { name: "Nationella reformer", value: 14, color: "#10b981" },
-  { name: "Demografi", value: 7, color: "#ec4899" },
-  { name: "Klimat", value: 5, color: "#14b8a6" },
+  { name: "Styrning & Demokrati", value: 18, color: "#3b82f6" },
+  { name: "Digitalisering & Teknik", value: 22, color: "#8b5cf6" },
+  { name: "Välfärd & Omsorg", value: 8, color: "#ec4899" },
+  { name: "Utbildning & Kompetens", value: 5, color: "#6366f1" },
+  { name: "Klimat, Miljö & Samh.", value: 12, color: "#14b8a6" },
+  { name: "Trygghet & Beredskap", value: 14, color: "#64748b" },
+  { name: "Ekonomi & Resurser", value: 9, color: "#f59e0b" },
+  { name: "Arbetsgivare & Org.", value: 4, color: "#f97316" },
+  { name: "Samhälle & Medborgare", value: 5, color: "#10b981" },
+  { name: "Innovation & Omst.", value: 3, color: "#06b6d4" },
 ];
 
 const frameworkData = [
@@ -50,14 +54,14 @@ const frameworkData = [
 ];
 
 const impactData = [
-  { name: "V3", kritisk: 1, hog: 3, medel: 3, lag: 1 },
-  { name: "V4", kritisk: 2, hog: 4, medel: 4, lag: 2 },
-  { name: "V5", kritisk: 1, hog: 5, medel: 6, lag: 3 },
-  { name: "V6", kritisk: 2, hog: 3, medel: 4, lag: 2 },
-  { name: "V7", kritisk: 0, hog: 3, medel: 4, lag: 2 },
-  { name: "V8", kritisk: 3, hog: 4, medel: 5, lag: 2 },
-  { name: "V9", kritisk: 2, hog: 6, medel: 7, lag: 3 },
-  { name: "V10", kritisk: 1, hog: 4, medel: 5, lag: 2 },
+  { name: "V3", direkt: 2, indirekt: 3, mojlighet: 2, risk: 1 },
+  { name: "V4", direkt: 3, indirekt: 4, mojlighet: 3, risk: 2 },
+  { name: "V5", direkt: 2, indirekt: 5, mojlighet: 5, risk: 3 },
+  { name: "V6", direkt: 3, indirekt: 3, mojlighet: 3, risk: 2 },
+  { name: "V7", direkt: 1, indirekt: 3, mojlighet: 3, risk: 2 },
+  { name: "V8", direkt: 4, indirekt: 4, mojlighet: 4, risk: 2 },
+  { name: "V9", direkt: 3, indirekt: 6, mojlighet: 6, risk: 3 },
+  { name: "V10", direkt: 2, indirekt: 4, mojlighet: 4, risk: 2 },
 ];
 
 const RADIAN = Math.PI / 180;
@@ -75,7 +79,7 @@ function renderCustomizedLabel(props: any) {
       fill="white"
       textAnchor="middle"
       dominantBaseline="central"
-      fontSize={12}
+      fontSize={11}
       fontWeight={600}
     >
       {`${(percent * 100).toFixed(0)}%`}
@@ -89,7 +93,7 @@ export default function TrendsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Trender</h1>
         <p className="text-muted-foreground">
-          Analys och trender over tid i bevakade kallor
+          Analys och trender över tid i bevakade källor
         </p>
       </div>
 
@@ -160,9 +164,9 @@ export default function TrendsPage() {
         {/* Category distribution pie chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Kategorifordelning</CardTitle>
+            <CardTitle className="text-base">Kategorifördelning</CardTitle>
             <CardDescription>
-              Fordelning av artiklar per amnesomrade
+              Fördelning av artiklar per ämnesområde
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -194,11 +198,11 @@ export default function TrendsPage() {
                   />
                   <Legend
                     verticalAlign="bottom"
-                    height={36}
+                    height={56}
                     iconType="circle"
                     iconSize={8}
                     formatter={(value) => (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[10px] text-muted-foreground">
                         {value}
                       </span>
                     )}
@@ -215,9 +219,9 @@ export default function TrendsPage() {
         {/* Framework coverage */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Ramverkstackning</CardTitle>
+            <CardTitle className="text-base">Ramverkstäckning</CardTitle>
             <CardDescription>
-              Hur val bevakningens artiklar tacker respektive analysramverk
+              Hur väl bevakningens artiklar täcker respektive analysramverk
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -251,7 +255,7 @@ export default function TrendsPage() {
                       border: "1px solid #e2e8f0",
                       fontSize: "13px",
                     }}
-                    formatter={(value) => [`${value}%`, "Tackning"]}
+                    formatter={(value) => [`${value}%`, "Täckning"]}
                   />
                   <Bar dataKey="covered" radius={[4, 4, 0, 0]} barSize={48}>
                     {frameworkData.map((entry, index) => (
@@ -268,10 +272,10 @@ export default function TrendsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Paverkansniva over tid
+              Påverkanstyp över tid
             </CardTitle>
             <CardDescription>
-              Fordelning av artiklar per paverkansniva de senaste 8 veckorna
+              Fördelning av artiklar per påverkanstyp de senaste 8 veckorna
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -307,10 +311,10 @@ export default function TrendsPage() {
                     iconSize={8}
                     formatter={(value) => {
                       const labels: Record<string, string> = {
-                        kritisk: "Kritisk",
-                        hog: "Hog",
-                        medel: "Medel",
-                        lag: "Lag",
+                        direkt: "Direkt reglering",
+                        indirekt: "Indirekt påverkan",
+                        mojlighet: "Möjlighet",
+                        risk: "Risk/hot",
                       };
                       return (
                         <span className="text-xs text-muted-foreground">
@@ -320,27 +324,27 @@ export default function TrendsPage() {
                     }}
                   />
                   <Bar
-                    dataKey="kritisk"
+                    dataKey="direkt"
                     stackId="a"
                     fill="#ef4444"
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar
-                    dataKey="hog"
+                    dataKey="indirekt"
                     stackId="a"
                     fill="#f97316"
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar
-                    dataKey="medel"
+                    dataKey="mojlighet"
                     stackId="a"
-                    fill="#eab308"
+                    fill="#22c55e"
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar
-                    dataKey="lag"
+                    dataKey="risk"
                     stackId="a"
-                    fill="#22c55e"
+                    fill="#e11d48"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>

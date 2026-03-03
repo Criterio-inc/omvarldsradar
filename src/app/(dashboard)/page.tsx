@@ -27,88 +27,122 @@ import {
   Cell,
 } from "recharts";
 
-const impactColors: Record<string, string> = {
-  KRITISK: "bg-red-100 text-red-700 border-red-200",
-  HOG: "bg-orange-100 text-orange-700 border-orange-200",
-  MEDEL: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  LAG: "bg-green-100 text-green-700 border-green-200",
+const categoryColors: Record<string, string> = {
+  "Styrning & Demokrati": "bg-blue-100 text-blue-700 border-blue-200",
+  "Digitalisering & Teknik": "bg-purple-100 text-purple-700 border-purple-200",
+  "Välfärd & Omsorg": "bg-pink-100 text-pink-700 border-pink-200",
+  "Utbildning & Kompetens": "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "Klimat, Miljö & Samhällsbyggnad": "bg-teal-100 text-teal-700 border-teal-200",
+  "Trygghet & Beredskap": "bg-slate-100 text-slate-700 border-slate-200",
+  "Ekonomi & Resurser": "bg-amber-100 text-amber-700 border-amber-200",
+  "Arbetsgivare & Organisation": "bg-orange-100 text-orange-700 border-orange-200",
+  "Samhälle & Medborgare": "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "Innovation & Omställning": "bg-cyan-100 text-cyan-700 border-cyan-200",
 };
 
-const categoryColors: Record<string, string> = {
-  "EU-regelverk": "bg-blue-100 text-blue-700 border-blue-200",
-  Teknik: "bg-purple-100 text-purple-700 border-purple-200",
-  Sakerhetspolitik: "bg-slate-100 text-slate-700 border-slate-200",
-  "Nationella reformer": "bg-emerald-100 text-emerald-700 border-emerald-200",
-  Demografi: "bg-pink-100 text-pink-700 border-pink-200",
+const paverkanColors: Record<string, string> = {
+  "Direkt reglering": "bg-red-100 text-red-700 border-red-200",
+  "Indirekt påverkan": "bg-orange-100 text-orange-700 border-orange-200",
+  "Möjlighet": "bg-green-100 text-green-700 border-green-200",
+  "Risk/hot": "bg-rose-100 text-rose-700 border-rose-200",
+};
+
+const atgardColors: Record<string, string> = {
+  "Agera nu": "bg-red-100 text-red-700 border-red-200",
+  "Planera": "bg-yellow-100 text-yellow-700 border-yellow-200",
+  "Bevaka": "bg-blue-100 text-blue-700 border-blue-200",
+  "Inspireras": "bg-emerald-100 text-emerald-700 border-emerald-200",
+};
+
+const tidshorisontColors: Record<string, string> = {
+  "Akut (0-3 mån)": "bg-red-50 text-red-600 border-red-200",
+  "Kort sikt (3-12 mån)": "bg-orange-50 text-orange-600 border-orange-200",
+  "Medellång sikt (1-3 år)": "bg-blue-50 text-blue-600 border-blue-200",
+  "Lång sikt (3+ år)": "bg-slate-50 text-slate-600 border-slate-200",
 };
 
 const mockInsights = [
   {
     id: "1",
     title:
-      "NIS2-direktivet: Nya krav pa cybersakerhet for offentlig sektor trader i kraft",
+      "NIS2-direktivet: Nya krav på cybersäkerhet för offentlig sektor träder i kraft",
     source: "Riksdagen.se",
     date: "2026-03-01",
-    category: "EU-regelverk",
-    impact: "KRITISK",
+    category: "Digitalisering & Teknik",
+    paverkan: "Direkt reglering",
+    atgard: "Agera nu",
+    tidshorisont: "Akut (0-3 mån)",
     summary:
-      "Det nya NIS2-direktivet innebar avsevart skarpta krav pa cybersakerhet for kommuner och regioner. Alla organisationer maste genomfora riskanalyser och implementera tekniska skyddsatgarder senast Q3 2026.",
+      "Det nya NIS2-direktivet innebär avsevärt skärpta krav på cybersäkerhet för kommuner och regioner. Alla organisationer måste genomföra riskanalyser och implementera tekniska skyddsåtgärder senast Q3 2026.",
     relevance: 94,
   },
   {
     id: "2",
     title:
-      "AI-forordningen (EU AI Act): Kommuner maste klassificera AI-system",
+      "AI-förordningen (EU AI Act): Kommuner måste klassificera AI-system",
     source: "EU-kommissionen",
     date: "2026-02-28",
-    category: "EU-regelverk",
-    impact: "HOG",
+    category: "Styrning & Demokrati",
+    paverkan: "Direkt reglering",
+    atgard: "Planera",
+    tidshorisont: "Kort sikt (3-12 mån)",
     summary:
-      "EU:s AI-forordning kraver att alla kommuner som anvander AI-system for myndighetsutovning klassificerar dessa som hogrisk-system. Nya transparenskrav galler fran 2026.",
+      "EU:s AI-förordning kräver att alla kommuner som använder AI-system för myndighetsutövning klassificerar dessa som högrisk-system. Nya transparenskrav gäller från 2026.",
     relevance: 89,
   },
   {
     id: "3",
     title:
-      "Statlig utredning foreslar ny modell for kommunal digitalisering",
+      "Statlig utredning föreslår ny modell för kommunal digitalisering",
     source: "Regeringskansliet",
     date: "2026-02-27",
-    category: "Nationella reformer",
-    impact: "HOG",
+    category: "Ekonomi & Resurser",
+    paverkan: "Möjlighet",
+    atgard: "Planera",
+    tidshorisont: "Medellång sikt (1-3 år)",
     summary:
-      "Utredningen 'Digital kommun 2030' foreslar gemensam digital infrastruktur for alla kommuner. Finansiering via statsbidrag och ny samordningsmyndighet foreslas.",
+      "Utredningen 'Digital kommun 2030' föreslår gemensam digital infrastruktur för alla kommuner. Finansiering via statsbidrag och ny samordningsmyndighet föreslås.",
     relevance: 82,
   },
   {
     id: "4",
-    title: "Ny rapport: Kriget i Ukraina paverkar kommunal beredskapsplanering",
+    title: "Ny rapport: Kriget i Ukraina påverkar kommunal beredskapsplanering",
     source: "MSB",
     date: "2026-02-26",
-    category: "Sakerhetspolitik",
-    impact: "MEDEL",
+    category: "Trygghet & Beredskap",
+    paverkan: "Indirekt påverkan",
+    atgard: "Bevaka",
+    tidshorisont: "Kort sikt (3-12 mån)",
     summary:
-      "MSB:s senaste rapport visar att 67% av kommunerna behover uppdatera sina beredskapsplaner. Sarskilt fokus pa energiforsorjning och vattensakerhet.",
+      "MSB:s senaste rapport visar att 67% av kommunerna behöver uppdatera sina beredskapsplaner. Särskilt fokus på energiförsörjning och vattensäkerhet.",
     relevance: 76,
   },
   {
     id: "5",
-    title: "Befolkningsprognoser visar pa okad urbanisering 2026-2030",
+    title: "Befolkningsprognoser visar på ökad urbanisering 2026-2030",
     source: "SCB",
     date: "2026-02-25",
-    category: "Demografi",
-    impact: "MEDEL",
+    category: "Samhälle & Medborgare",
+    paverkan: "Indirekt påverkan",
+    atgard: "Bevaka",
+    tidshorisont: "Lång sikt (3+ år)",
     summary:
-      "Statistiska centralbyrans nya prognoser visar att 78 av 290 kommuner forvantas minska med mer an 5% till 2030. Konsekvenser for skatteunderlag och serviceforsorjning.",
+      "Statistiska centralbyråns nya prognoser visar att 78 av 290 kommuner förväntas minska med mer än 5% till 2030. Konsekvenser för skatteunderlag och serviceförsörjning.",
     relevance: 71,
   },
 ];
 
 const trendData = [
-  { name: "EU-regelverk", value: 34, color: "#3b82f6" },
-  { name: "Teknologiskiften", value: 22, color: "#8b5cf6" },
-  { name: "Sakerhetspolitik", value: 18, color: "#64748b" },
-  { name: "Nationella reformer", value: 14, color: "#10b981" },
-  { name: "Demografi", value: 12, color: "#ec4899" },
+  { name: "Styrning & Demokrati", value: 18, color: "#3b82f6" },
+  { name: "Digitalisering & Teknik", value: 22, color: "#8b5cf6" },
+  { name: "Välfärd & Omsorg", value: 8, color: "#ec4899" },
+  { name: "Utbildning & Kompetens", value: 5, color: "#6366f1" },
+  { name: "Klimat, Miljö & Samh.", value: 12, color: "#14b8a6" },
+  { name: "Trygghet & Beredskap", value: 14, color: "#64748b" },
+  { name: "Ekonomi & Resurser", value: 9, color: "#f59e0b" },
+  { name: "Arbetsgivare & Org.", value: 4, color: "#f97316" },
+  { name: "Samhälle & Medborgare", value: 5, color: "#10b981" },
+  { name: "Innovation & Omställn.", value: 3, color: "#06b6d4" },
 ];
 
 function getWeekNumber(): number {
@@ -128,7 +162,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">God morgon!</h1>
         <p className="text-muted-foreground">
-          Vecka {weekNumber} &mdash; Har ar din omvarldsbevakning
+          Vecka {weekNumber} &mdash; Här är din omvärldsbevakning
         </p>
       </div>
 
@@ -153,7 +187,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">
-                Kritiska forandringar
+                Kräver åtgärd nu
               </p>
               <p className="text-2xl font-bold text-red-600">3</p>
             </div>
@@ -166,8 +200,8 @@ export default function DashboardPage() {
               <CalendarClock className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Nasta briefing</p>
-              <p className="text-2xl font-bold text-green-700">man 10 mar</p>
+              <p className="text-sm text-muted-foreground">Nästa briefing</p>
+              <p className="text-2xl font-bold text-green-700">mån 10 mar</p>
             </div>
           </CardContent>
         </Card>
@@ -193,18 +227,30 @@ export default function DashboardPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge
                         variant="outline"
-                        className={impactColors[article.impact]}
-                      >
-                        {article.impact}
-                      </Badge>
-                      <Badge
-                        variant="outline"
                         className={
                           categoryColors[article.category] ||
                           "bg-gray-100 text-gray-700 border-gray-200"
                         }
                       >
                         {article.category}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={paverkanColors[article.paverkan]}
+                      >
+                        {article.paverkan}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={atgardColors[article.atgard]}
+                      >
+                        {article.atgard}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={tidshorisontColors[article.tidshorisont]}
+                      >
+                        {article.tidshorisont}
                       </Badge>
                     </div>
 
@@ -248,15 +294,15 @@ export default function DashboardPage() {
 
         {/* Trend overview */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Trendoversikt</h2>
+          <h2 className="text-lg font-semibold">Trendöversikt</h2>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Fordelning per kategori
+                Fördelning per kategori
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[280px]">
+              <div className="h-[380px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={trendData}
@@ -278,8 +324,8 @@ export default function DashboardPage() {
                     <YAxis
                       type="category"
                       dataKey="name"
-                      width={120}
-                      fontSize={12}
+                      width={140}
+                      fontSize={11}
                       tickLine={false}
                       axisLine={false}
                     />
@@ -291,7 +337,7 @@ export default function DashboardPage() {
                         fontSize: "13px",
                       }}
                     />
-                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                       {trendData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -306,7 +352,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Snabbllankar
+                Snabblänkar
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -327,7 +373,7 @@ export default function DashboardPage() {
               >
                 <Link href="/search">
                   <FileText className="mr-2 h-4 w-4" />
-                  Djupsok
+                  Djupsök
                 </Link>
               </Button>
               <Button

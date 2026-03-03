@@ -15,17 +15,17 @@ import { Badge } from "@/components/ui/badge";
 
 const recentSearches = [
   {
-    query: "NIS2 cybersakerhet kommuner",
+    query: "NIS2 cybersäkerhet kommuner",
     date: "2026-03-01",
     results: 8,
   },
   {
-    query: "AI Act klassificering myndighetsutovning",
+    query: "AI Act klassificering myndighetsutövning",
     date: "2026-02-28",
     results: 5,
   },
   {
-    query: "totalforsvarsplanering NATO",
+    query: "totalförsvarsplanering NATO",
     date: "2026-02-27",
     results: 12,
   },
@@ -35,21 +35,23 @@ const recentSearches = [
     results: 6,
   },
   {
-    query: "digitalisering kommunal samverkan",
+    query: "kompetensförsörjning välfärd",
     date: "2026-02-24",
     results: 9,
   },
 ];
 
 const suggestedTopics = [
-  "NIS2-direktivet",
-  "EU AI Act",
-  "Totalforsvar",
+  "Cybersäkerhet",
+  "AI-reglering",
+  "Totalförsvar",
   "Klimatanpassning",
-  "Digitalisering",
-  "Oppna data",
-  "Visselblasare",
-  "Cybersakerhet",
+  "Kompetensförsörjning",
+  "Öppna data",
+  "Äldreomsorg",
+  "Kommunal ekonomi",
+  "Integration",
+  "Megatrender",
 ];
 
 export default function SearchPage() {
@@ -71,9 +73,9 @@ export default function SearchPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Sok</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Sök</h1>
         <p className="text-muted-foreground">
-          Sok i alla bevakade kallor och analyser
+          Sök i alla bevakade källor och analyser
         </p>
       </div>
 
@@ -84,7 +86,7 @@ export default function SearchPage() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Sok artiklar, trender, amnesomraden..."
+                placeholder="Sök artiklar, trender, ämnesområden..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -121,12 +123,12 @@ export default function SearchPage() {
             </div>
             <div className="max-w-md">
               <h3 className="text-lg font-semibold">
-                AI-driven sokning kommer i nasta fas
+                AI-driven sökning kommer i nästa fas
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                I nasta version kommer du kunna stalla fragor pa naturligt sprak
-                och fa AI-genererade svar baserade pa alla bevakade kallor. Till
-                exempel: &quot;Vilka EU-regelverk paverkar min kommun
+                I nästa version kommer du kunna ställa frågor på naturligt språk
+                och få AI-genererade svar baserade på alla bevakade källor. Till
+                exempel: &quot;Vilka EU-regelverk påverkar min kommun
                 2026?&quot;
               </p>
             </div>
@@ -143,7 +145,7 @@ export default function SearchPage() {
         <div className="space-y-4">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             <Clock className="h-5 w-5 text-muted-foreground" />
-            Senaste sokningar
+            Senaste sökningar
           </h2>
 
           <div className="space-y-2">

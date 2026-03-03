@@ -21,68 +21,84 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const importantItems = [
   {
-    title: "NIS2-direktivet trader i kraft",
+    title: "NIS2-direktivet träder i kraft",
     description:
-      "Nya cybersakerhetskrav for offentlig sektor. Kommuner och regioner maste genomfora riskanalyser, implementera tekniska skyddsatgarder och utbilda personal. Deadline for forsta rapportering: Q3 2026.",
-    impact: "KRITISK",
-    category: "EU-regelverk",
+      "Nya cybersäkerhetskrav för offentlig sektor. Kommuner och regioner måste genomföra riskanalyser, implementera tekniska skyddsåtgärder och utbilda personal. Deadline för första rapportering: Q3 2026.",
+    category: "Digitalisering & Teknik",
+    paverkan: "Direkt reglering",
+    atgard: "Agera nu",
     actionRequired: true,
   },
   {
-    title: "EU AI Act: Klassificeringskrav for AI-system",
+    title: "EU AI Act: Klassificeringskrav för AI-system",
     description:
-      "Alla AI-system som anvands for myndighetsutovning maste klassificeras och registreras. Sarskilt relevant for kommuner som anvander AI i beslutsstod, chatbotar och arendehantering.",
-    impact: "HOG",
-    category: "EU-regelverk",
+      "Alla AI-system som används för myndighetsutövning måste klassificeras och registreras. Särskilt relevant för kommuner som använder AI i beslutsstöd, chatbotar och ärendehantering.",
+    category: "Styrning & Demokrati",
+    paverkan: "Direkt reglering",
+    atgard: "Planera",
     actionRequired: true,
   },
   {
-    title: "NATO-anpassning av totalforsvarsplanering",
+    title: "NATO-anpassning av totalförsvarsplanering",
     description:
-      "Forsvarsdepartementet har publicerat nya riktlinjer for kommunal totalforsvarsplanering i linje med NATO-standarden. Rorande vardplaner, kritisk infrastruktur och samverkan med Forsvarsmakten.",
-    impact: "KRITISK",
-    category: "Sakerhetspolitik",
+      "Försvarsdepartementet har publicerat nya riktlinjer för kommunal totalförsvarsplanering i linje med NATO-standarden. Rörande vårdplaner, kritisk infrastruktur och samverkan med Försvarsmakten.",
+    category: "Trygghet & Beredskap",
+    paverkan: "Direkt reglering",
+    atgard: "Agera nu",
     actionRequired: false,
   },
 ];
+
+const categoryBadgeColors: Record<string, string> = {
+  "Digitalisering & Teknik": "bg-purple-100 text-purple-700 border-purple-200",
+  "Styrning & Demokrati": "bg-blue-100 text-blue-700 border-blue-200",
+  "Trygghet & Beredskap": "bg-slate-100 text-slate-700 border-slate-200",
+};
+
+const paverkanBadgeColors: Record<string, string> = {
+  "Direkt reglering": "bg-red-100 text-red-700 border-red-200",
+  "Indirekt påverkan": "bg-orange-100 text-orange-700 border-orange-200",
+  "Möjlighet": "bg-green-100 text-green-700 border-green-200",
+  "Risk/hot": "bg-rose-100 text-rose-700 border-rose-200",
+};
 
 const deadlines = [
   {
     date: "2026-03-15",
     title: "Remissvar: Digital kommun 2030",
-    description: "Sista dag for att lamna remissvar pa utredningen.",
+    description: "Sista dag för att lämna remissvar på utredningen.",
   },
   {
     date: "2026-04-01",
-    title: "NIS2: Anmalan till tillsynsmyndighet",
-    description: "Alla organisationer som omfattas maste anmala sig.",
+    title: "NIS2: Anmälan till tillsynsmyndighet",
+    description: "Alla organisationer som omfattas måste anmäla sig.",
   },
   {
     date: "2026-06-30",
     title: "AI Act: Klassificeringsrapport",
-    description: "Forsta rapporten over anvanda AI-system ska vara inlamnad.",
+    description: "Första rapporten över använda AI-system ska vara inlämnad.",
   },
   {
     date: "2026-07-01",
-    title: "Visselblasarlagen: Rapporteringskanal",
+    title: "Visselblåsarlagen: Rapporteringskanal",
     description:
-      "Alla kommuner med 50+ anstallda maste ha interna rapporteringskanaler.",
+      "Alla kommuner med 50+ anställda måste ha interna rapporteringskanaler.",
   },
 ];
 
 const recommendations = [
   {
-    title: "Genomfor NIS2 gap-analys",
+    title: "Genomför NIS2 gap-analys",
     description:
-      "Kartlagg nuvarande cybersakerhetsstatus mot NIS2-kraven. Prioritera identifiering av kritiska informationssystem och tillgangar.",
-    priority: "Hog",
+      "Kartlägg nuvarande cybersäkerhetsstatus mot NIS2-kraven. Prioritera identifiering av kritiska informationssystem och tillgångar.",
+    priority: "Hög",
     status: "ej_paborjad",
   },
   {
     title: "Inventera AI-system",
     description:
-      "Skapa en fullstandig inventering av alla AI-system som anvands i verksamheten, inklusive tredjepartslosningar och chatbotar.",
-    priority: "Hog",
+      "Skapa en fullständig inventering av alla AI-system som används i verksamheten, inklusive tredjepartslösningar och chatbotar.",
+    priority: "Hög",
     status: "ej_paborjad",
   },
   {
@@ -93,17 +109,17 @@ const recommendations = [
     status: "pagaende",
   },
   {
-    title: "Lamna remissvar pa Digital kommun 2030",
+    title: "Lämna remissvar på Digital kommun 2030",
     description:
-      "Ta stallning till forslagen i utredningen och formulera ett remissvar. Deadline: 15 mars 2026.",
+      "Ta ställning till förslagen i utredningen och formulera ett remissvar. Deadline: 15 mars 2026.",
     priority: "Medel",
     status: "ej_paborjad",
   },
   {
-    title: "Planera for klimatanpassningsplan",
+    title: "Planera för klimatanpassningsplan",
     description:
-      "Paborja arbetet med den lokala klimatanpassningsplanen som EU-regelverket kraver senast 2027.",
-    priority: "Lag",
+      "Påbörja arbetet med den lokala klimatanpassningsplanen som EU-regelverket kräver senast 2027.",
+    priority: "Låg",
     status: "ej_paborjad",
   },
 ];
@@ -117,8 +133,8 @@ const archivedBriefings = [
 ];
 
 const statusLabels: Record<string, string> = {
-  ej_paborjad: "Ej paborjad",
-  pagaende: "Pagaende",
+  ej_paborjad: "Ej påbörjad",
+  pagaende: "Pågående",
   klar: "Klar",
 };
 
@@ -129,9 +145,9 @@ const statusColors: Record<string, string> = {
 };
 
 const priorityColors: Record<string, string> = {
-  Hog: "text-red-600",
+  "Hög": "text-red-600",
   Medel: "text-orange-600",
-  Lag: "text-green-600",
+  "Låg": "text-green-600",
 };
 
 export default function BriefingPage() {
@@ -159,7 +175,7 @@ export default function BriefingPage() {
                 <CardTitle>Veckobriefing - Vecka 10</CardTitle>
               </div>
               <CardDescription>
-                Genererad 3 mars 2026 &middot; Baserad pa 12 bevakade artiklar
+                Genererad 3 mars 2026 &middot; Baserad på 12 bevakade artiklar
               </CardDescription>
             </CardHeader>
           </Card>
@@ -179,25 +195,27 @@ export default function BriefingPage() {
                       <Badge
                         variant="outline"
                         className={
-                          item.impact === "KRITISK"
-                            ? "bg-red-100 text-red-700 border-red-200"
-                            : "bg-orange-100 text-orange-700 border-orange-200"
+                          categoryBadgeColors[item.category] ||
+                          "bg-gray-100 text-gray-700 border-gray-200"
                         }
                       >
-                        {item.impact}
+                        {item.category}
                       </Badge>
                       <Badge
                         variant="outline"
-                        className="bg-blue-100 text-blue-700 border-blue-200"
+                        className={
+                          paverkanBadgeColors[item.paverkan] ||
+                          "bg-gray-100 text-gray-700 border-gray-200"
+                        }
                       >
-                        {item.category}
+                        {item.paverkan}
                       </Badge>
                       {item.actionRequired && (
                         <Badge
                           variant="outline"
                           className="bg-amber-100 text-amber-700 border-amber-200"
                         >
-                          Atgard kravs
+                          Åtgärd krävs
                         </Badge>
                       )}
                     </div>
@@ -253,11 +271,11 @@ export default function BriefingPage() {
 
           <Separator />
 
-          {/* Rekommenderade atgarder */}
+          {/* Rekommenderade åtgärder */}
           <div className="space-y-4">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
-              Rekommenderade atgarder
+              Rekommenderade åtgärder
             </h2>
 
             <div className="space-y-3">

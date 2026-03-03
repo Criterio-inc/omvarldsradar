@@ -16,6 +16,7 @@ import {
   User,
   Radar,
   ChevronDown,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,15 +41,16 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const navItems = [
-  { label: "Oversikt", href: "/", icon: LayoutDashboard },
-  { label: "Flodet", href: "/feed", icon: Newspaper },
+  { label: "Översikt", href: "/", icon: LayoutDashboard },
+  { label: "Flödet", href: "/feed", icon: Newspaper },
   { label: "Briefing", href: "/briefing", icon: Mail },
   { label: "Trender", href: "/trends", icon: TrendingUp },
-  { label: "Sok", href: "/search", icon: Search },
+  { label: "Sök", href: "/search", icon: Search },
 ];
 
 const bottomNavItems = [
-  { label: "Installningar", href: "/settings", icon: Settings },
+  { label: "Om", href: "/om", icon: Info },
+  { label: "Inställningar", href: "/settings", icon: Settings },
 ];
 
 function SidebarContent({ pathname }: { pathname: string }) {
@@ -60,8 +62,8 @@ function SidebarContent({ pathname }: { pathname: string }) {
           <Radar className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-sm font-bold text-white">OmvarldsRadar</h1>
-          <p className="text-[11px] text-slate-400">Omvarldsbevakning</p>
+          <h1 className="text-sm font-bold text-white">OmvärldsRadar</h1>
+          <p className="text-[11px] text-slate-400">Omvärldsbevakning</p>
         </div>
       </div>
 
@@ -125,7 +127,7 @@ function SidebarContent({ pathname }: { pathname: string }) {
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-white">
-              Par Levander
+              Pär Levander
             </p>
             <p className="truncate text-xs text-slate-400">
               Critero Consulting
@@ -161,7 +163,7 @@ export default function DashboardLayout({
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Oppna meny</span>
+                <span className="sr-only">Öppna meny</span>
               </Button>
             </SheetTrigger>
             <SheetContent
@@ -180,7 +182,7 @@ export default function DashboardLayout({
           <div className="relative hidden flex-1 md:block md:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Sok artiklar, trender, amnesomraden..."
+              placeholder="Sök artiklar, trender, ämnesområden..."
               className="pl-9 bg-muted/50 border-0"
             />
           </div>
@@ -208,7 +210,7 @@ export default function DashboardLayout({
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden text-sm font-medium md:inline-block">
-                    Par Levander
+                    Pär Levander
                   </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </Button>
@@ -225,7 +227,7 @@ export default function DashboardLayout({
                 <DropdownMenuItem asChild>
                   <Link href="/settings">
                     <Settings className="mr-2 h-4 w-4" />
-                    Installningar
+                    Inställningar
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
