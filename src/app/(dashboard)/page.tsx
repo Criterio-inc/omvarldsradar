@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FileText,
@@ -7,6 +8,10 @@ import {
   CalendarClock,
   ArrowRight,
   ExternalLink,
+  Database,
+  Rss,
+  Loader2,
+  Info,
 } from "lucide-react";
 import {
   Card,
@@ -26,6 +31,12 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import {
+  fetchDashboardStats,
+  fetchLatestArticles,
+  type DashboardStats,
+  type Article,
+} from "@/lib/data";
 
 const categoryColors: Record<string, string> = {
   "Styrning & Demokrati": "bg-blue-100 text-blue-700 border-blue-200",
@@ -40,18 +51,18 @@ const categoryColors: Record<string, string> = {
   "Innovation & Omställning": "bg-cyan-100 text-cyan-700 border-cyan-200",
 };
 
-const paverkanColors: Record<string, string> = {
-  "Direkt reglering": "bg-red-100 text-red-700 border-red-200",
-  "Indirekt påverkan": "bg-orange-100 text-orange-700 border-orange-200",
-  "Möjlighet": "bg-green-100 text-green-700 border-green-200",
-  "Risk/hot": "bg-rose-100 text-rose-700 border-rose-200",
-};
-
 const atgardColors: Record<string, string> = {
   "Agera nu": "bg-red-100 text-red-700 border-red-200",
   "Planera": "bg-yellow-100 text-yellow-700 border-yellow-200",
   "Bevaka": "bg-blue-100 text-blue-700 border-blue-200",
   "Inspireras": "bg-emerald-100 text-emerald-700 border-emerald-200",
+};
+
+const paverkanColors: Record<string, string> = {
+  "Direkt reglering": "bg-red-100 text-red-700 border-red-200",
+  "Indirekt påverkan": "bg-orange-100 text-orange-700 border-orange-200",
+  "Möjlighet": "bg-green-100 text-green-700 border-green-200",
+  "Risk/hot": "bg-rose-100 text-rose-700 border-rose-200",
 };
 
 const tidshorisontColors: Record<string, string> = {
@@ -60,90 +71,6 @@ const tidshorisontColors: Record<string, string> = {
   "Medellång sikt (1-3 år)": "bg-blue-50 text-blue-600 border-blue-200",
   "Lång sikt (3+ år)": "bg-slate-50 text-slate-600 border-slate-200",
 };
-
-const mockInsights = [
-  {
-    id: "1",
-    title:
-      "NIS2-direktivet: Nya krav på cybersäkerhet för offentlig sektor träder i kraft",
-    source: "Riksdagen.se",
-    date: "2026-03-01",
-    category: "Digitalisering & Teknik",
-    paverkan: "Direkt reglering",
-    atgard: "Agera nu",
-    tidshorisont: "Akut (0-3 mån)",
-    summary:
-      "Det nya NIS2-direktivet innebär avsevärt skärpta krav på cybersäkerhet för kommuner och regioner. Alla organisationer måste genomföra riskanalyser och implementera tekniska skyddsåtgärder senast Q3 2026.",
-    relevance: 94,
-  },
-  {
-    id: "2",
-    title:
-      "AI-förordningen (EU AI Act): Kommuner måste klassificera AI-system",
-    source: "EU-kommissionen",
-    date: "2026-02-28",
-    category: "Styrning & Demokrati",
-    paverkan: "Direkt reglering",
-    atgard: "Planera",
-    tidshorisont: "Kort sikt (3-12 mån)",
-    summary:
-      "EU:s AI-förordning kräver att alla kommuner som använder AI-system för myndighetsutövning klassificerar dessa som högrisk-system. Nya transparenskrav gäller från 2026.",
-    relevance: 89,
-  },
-  {
-    id: "3",
-    title:
-      "Statlig utredning föreslår ny modell för kommunal digitalisering",
-    source: "Regeringskansliet",
-    date: "2026-02-27",
-    category: "Ekonomi & Resurser",
-    paverkan: "Möjlighet",
-    atgard: "Planera",
-    tidshorisont: "Medellång sikt (1-3 år)",
-    summary:
-      "Utredningen 'Digital kommun 2030' föreslår gemensam digital infrastruktur för alla kommuner. Finansiering via statsbidrag och ny samordningsmyndighet föreslås.",
-    relevance: 82,
-  },
-  {
-    id: "4",
-    title: "Ny rapport: Kriget i Ukraina påverkar kommunal beredskapsplanering",
-    source: "MSB",
-    date: "2026-02-26",
-    category: "Trygghet & Beredskap",
-    paverkan: "Indirekt påverkan",
-    atgard: "Bevaka",
-    tidshorisont: "Kort sikt (3-12 mån)",
-    summary:
-      "MSB:s senaste rapport visar att 67% av kommunerna behöver uppdatera sina beredskapsplaner. Särskilt fokus på energiförsörjning och vattensäkerhet.",
-    relevance: 76,
-  },
-  {
-    id: "5",
-    title: "Befolkningsprognoser visar på ökad urbanisering 2026-2030",
-    source: "SCB",
-    date: "2026-02-25",
-    category: "Samhälle & Medborgare",
-    paverkan: "Indirekt påverkan",
-    atgard: "Bevaka",
-    tidshorisont: "Lång sikt (3+ år)",
-    summary:
-      "Statistiska centralbyråns nya prognoser visar att 78 av 290 kommuner förväntas minska med mer än 5% till 2030. Konsekvenser för skatteunderlag och serviceförsörjning.",
-    relevance: 71,
-  },
-];
-
-const trendData = [
-  { name: "Styrning & Demokrati", value: 18, color: "#3b82f6" },
-  { name: "Digitalisering & Teknik", value: 22, color: "#8b5cf6" },
-  { name: "Välfärd & Omsorg", value: 8, color: "#ec4899" },
-  { name: "Utbildning & Kompetens", value: 5, color: "#6366f1" },
-  { name: "Klimat, Miljö & Samh.", value: 12, color: "#14b8a6" },
-  { name: "Trygghet & Beredskap", value: 14, color: "#64748b" },
-  { name: "Ekonomi & Resurser", value: 9, color: "#f59e0b" },
-  { name: "Arbetsgivare & Org.", value: 4, color: "#f97316" },
-  { name: "Samhälle & Medborgare", value: 5, color: "#10b981" },
-  { name: "Innovation & Omställn.", value: 3, color: "#06b6d4" },
-];
 
 function getWeekNumber(): number {
   const now = new Date();
@@ -155,6 +82,30 @@ function getWeekNumber(): number {
 
 export default function DashboardPage() {
   const weekNumber = getWeekNumber();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [s, a] = await Promise.all([
+          fetchDashboardStats(),
+          fetchLatestArticles(5),
+        ]);
+        setStats(s);
+        setArticles(a);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  // Build trend data from real articles
+  const trendData = articles.length > 0
+    ? buildTrendData(articles)
+    : defaultTrendData;
 
   return (
     <div className="space-y-6">
@@ -167,44 +118,32 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardContent className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-100">
-              <FileText className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Nya denna vecka</p>
-              <p className="text-2xl font-bold">12</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-100">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Kräver åtgärd nu
-              </p>
-              <p className="text-2xl font-bold text-red-600">3</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-green-100">
-              <CalendarClock className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Nästa briefing</p>
-              <p className="text-2xl font-bold text-green-700">mån 10 mar</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          icon={<FileText className="h-6 w-6 text-blue-600" />}
+          iconBg="bg-blue-100"
+          label="Artiklar totalt"
+          value={loading ? null : stats?.totalArticles ?? 0}
+        />
+        <StatCard
+          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
+          iconBg="bg-red-100"
+          label="Kräver åtgärd"
+          value={loading ? null : stats?.actionRequired ?? 0}
+          valueClass={stats?.actionRequired ? "text-red-600" : undefined}
+        />
+        <StatCard
+          icon={<Database className="h-6 w-6 text-green-600" />}
+          iconBg="bg-green-100"
+          label="Källor"
+          value={loading ? null : `${stats?.activeSources ?? 0} / ${stats?.totalSources ?? 0}`}
+        />
+        <StatCard
+          icon={<Rss className="h-6 w-6 text-orange-600" />}
+          iconBg="bg-orange-100"
+          label="RSS-redo"
+          value={loading ? null : stats?.rssReady ?? 0}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -219,77 +158,125 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          <div className="space-y-3">
-            {mockInsights.map((article) => (
-              <Link key={article.id} href={`/article/${article.id}`}>
-                <Card className="transition-shadow hover:shadow-md cursor-pointer">
-                  <CardContent className="space-y-2.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={
-                          categoryColors[article.category] ||
-                          "bg-gray-100 text-gray-700 border-gray-200"
-                        }
-                      >
-                        {article.category}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={paverkanColors[article.paverkan]}
-                      >
-                        {article.paverkan}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={atgardColors[article.atgard]}
-                      >
-                        {article.atgard}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={tidshorisontColors[article.tidshorisont]}
-                      >
-                        {article.tidshorisont}
-                      </Badge>
-                    </div>
-
-                    <h3 className="font-semibold leading-snug">
-                      {article.title}
-                    </h3>
-
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {article.summary}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <ExternalLink className="h-3 w-3" />
-                        <span>{article.source}</span>
-                        <span>&middot;</span>
-                        <span>{article.date}</span>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : articles.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+                <Info className="h-10 w-10 text-muted-foreground/50" />
+                <div>
+                  <p className="font-medium">Inga artiklar hämtade ännu</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {stats?.totalSources
+                      ? `${stats.totalSources} källor konfigurerade (${stats.rssReady} med RSS). Artiklar hämtas automatiskt var 6:e timme.`
+                      : "Konfigurera källor för att börja hämta artiklar."}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/settings">Konfigurera källor</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {articles.map((article) => (
+                <Link key={article.id} href={`/article/${article.id}`}>
+                  <Card className="transition-shadow hover:shadow-md cursor-pointer">
+                    <CardContent className="space-y-2.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {article.ai_category && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              categoryColors[article.ai_category] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_category}
+                          </Badge>
+                        )}
+                        {article.ai_impact && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              paverkanColors[article.ai_impact] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_impact}
+                          </Badge>
+                        )}
+                        {article.ai_action && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              atgardColors[article.ai_action] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_action}
+                          </Badge>
+                        )}
+                        {article.ai_timeframe && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              tidshorisontColors[article.ai_timeframe] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_timeframe}
+                          </Badge>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          Relevans
-                        </span>
-                        <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-[var(--brand)]"
-                            style={{ width: `${article.relevance}%` }}
-                          />
+                      <h3 className="font-semibold leading-snug">
+                        {article.title}
+                      </h3>
+
+                      {(article.ai_summary || article.summary) && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {article.ai_summary || article.summary}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <ExternalLink className="h-3 w-3" />
+                          <span>{article.source_name}</span>
+                          <span>&middot;</span>
+                          <span>
+                            {article.published_at
+                              ? new Date(article.published_at).toLocaleDateString("sv-SE")
+                              : new Date(article.fetched_at).toLocaleDateString("sv-SE")}
+                          </span>
                         </div>
-                        <span className="text-xs font-medium">
-                          {article.relevance}%
-                        </span>
+
+                        {article.ai_relevance != null && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              Relevans
+                            </span>
+                            <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className="h-full rounded-full bg-[var(--brand)]"
+                                style={{ width: `${article.ai_relevance}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium">
+                              {article.ai_relevance}%
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Trend overview */}
@@ -316,7 +303,6 @@ export default function DashboardPage() {
                     />
                     <XAxis
                       type="number"
-                      tickFormatter={(v) => `${v}%`}
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
@@ -330,7 +316,7 @@ export default function DashboardPage() {
                       axisLine={false}
                     />
                     <Tooltip
-                      formatter={(value) => [`${value}%`, "Andel"]}
+                      formatter={(value) => [`${value} st`, "Artiklar"]}
                       contentStyle={{
                         borderRadius: "8px",
                         border: "1px solid #e2e8f0",
@@ -393,3 +379,86 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+// --- Helper components ---
+
+function StatCard({
+  icon,
+  iconBg,
+  label,
+  value,
+  valueClass,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  label: string;
+  value: string | number | null;
+  valueClass?: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="flex items-center gap-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
+        >
+          {icon}
+        </div>
+        <div>
+          <p className="text-sm text-muted-foreground">{label}</p>
+          {value === null ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mt-1" />
+          ) : (
+            <p className={`text-2xl font-bold ${valueClass ?? ""}`}>{value}</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// --- Trend data helpers ---
+
+const categoryColorMap: Record<string, string> = {
+  "Styrning & Demokrati": "#3b82f6",
+  "Digitalisering & Teknik": "#8b5cf6",
+  "Välfärd & Omsorg": "#ec4899",
+  "Utbildning & Kompetens": "#6366f1",
+  "Klimat, Miljö & Samhällsbyggnad": "#14b8a6",
+  "Trygghet & Beredskap": "#64748b",
+  "Ekonomi & Resurser": "#f59e0b",
+  "Arbetsgivare & Organisation": "#f97316",
+  "Samhälle & Medborgare": "#10b981",
+  "Innovation & Omställning": "#06b6d4",
+};
+
+const shortNames: Record<string, string> = {
+  "Klimat, Miljö & Samhällsbyggnad": "Klimat, Miljö & Samh.",
+  "Arbetsgivare & Organisation": "Arbetsgivare & Org.",
+  "Innovation & Omställning": "Innovation & Omställn.",
+};
+
+function buildTrendData(articles: Article[]) {
+  const counts: Record<string, number> = {};
+  for (const a of articles) {
+    const cat = a.ai_category || "Övrigt";
+    counts[cat] = (counts[cat] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, value]) => ({
+      name: shortNames[name] || name,
+      value,
+      color: categoryColorMap[name] || "#94a3b8",
+    }));
+}
+
+const defaultTrendData = [
+  { name: "Styrning & Demokrati", value: 0, color: "#3b82f6" },
+  { name: "Digitalisering & Teknik", value: 0, color: "#8b5cf6" },
+  { name: "Välfärd & Omsorg", value: 0, color: "#ec4899" },
+  { name: "Klimat, Miljö & Samh.", value: 0, color: "#14b8a6" },
+  { name: "Trygghet & Beredskap", value: 0, color: "#64748b" },
+  { name: "Ekonomi & Resurser", value: 0, color: "#f59e0b" },
+  { name: "Samhälle & Medborgare", value: 0, color: "#10b981" },
+  { name: "Innovation & Omställn.", value: 0, color: "#06b6d4" },
+];

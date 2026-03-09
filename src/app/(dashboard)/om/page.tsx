@@ -14,6 +14,10 @@ import {
   FlaskConical,
   Brain,
   CheckCircle2,
+  HeartPulse,
+  Leaf,
+  TrendingUp,
+  Rocket,
 } from "lucide-react";
 import {
   Card,
@@ -28,41 +32,93 @@ import { Separator } from "@/components/ui/separator";
 const sourceCategories = [
   {
     icon: Landmark,
-    title: "Myndigheter",
-    sources: ["SKR", "DIGG", "MSB", "Inera", "Upphandlingsmyndigheten"],
+    title: "Styrning & digitalisering",
+    sources: ["SKR", "DIGG", "Inera", "eSam", "Upphandlingsmyndigheten"],
     color: "bg-blue-100 text-blue-700",
+    maps: "Styrning & Demokrati, Digitalisering & Teknik",
+  },
+  {
+    icon: HeartPulse,
+    title: "Välfärd, hälsa & utbildning",
+    sources: [
+      "Socialstyrelsen",
+      "IVO",
+      "Folkhälsomyndigheten",
+      "Skolverket",
+      "Universitetskanslersämbetet",
+    ],
+    color: "bg-pink-100 text-pink-700",
+    maps: "Välfärd & Omsorg, Utbildning & Kompetens",
+  },
+  {
+    icon: Leaf,
+    title: "Samhällsbyggnad, miljö & energi",
+    sources: ["Naturvårdsverket", "Boverket", "Energimyndigheten"],
+    color: "bg-teal-100 text-teal-700",
+    maps: "Klimat, Miljö & Samhällsbyggnad",
+  },
+  {
+    icon: Shield,
+    title: "Trygghet & beredskap",
+    sources: ["MSB", "FOI", "BRÅ"],
+    color: "bg-slate-100 text-slate-700",
+    maps: "Trygghet & Beredskap",
+  },
+  {
+    icon: TrendingUp,
+    title: "Ekonomi & arbetsmarknad",
+    sources: [
+      "Ekonomistyrningsverket",
+      "Konjunkturinstitutet",
+      "Arbetsmiljöverket",
+      "Statskontoret",
+    ],
+    color: "bg-amber-100 text-amber-700",
+    maps: "Ekonomi & Resurser, Arbetsgivare & Organisation",
+  },
+  {
+    icon: Rocket,
+    title: "Innovation & tillväxt",
+    sources: ["Vinnova", "Tillväxtverket", "PTS"],
+    color: "bg-cyan-100 text-cyan-700",
+    maps: "Innovation & Omställning",
   },
   {
     icon: Building2,
-    title: "Regeringen",
-    sources: ["Regeringskansliet", "SOU:er", "Propositioner"],
+    title: "Regeringen & länsstyrelserna",
+    sources: ["Regeringskansliet", "SOU:er", "Propositioner", "Länsstyrelserna"],
     color: "bg-emerald-100 text-emerald-700",
+    maps: "Samtliga kategorier",
   },
   {
     icon: Globe,
     title: "EU-institutioner",
     sources: ["EU-kommissionen", "Digital Strategy", "Europaparlamentet"],
     color: "bg-indigo-100 text-indigo-700",
+    maps: "Samtliga kategorier",
   },
   {
     icon: Newspaper,
     title: "Branschmedia",
     sources: ["Dagens Samhälle", "Computer Sweden", "Altinget"],
     color: "bg-amber-100 text-amber-700",
+    maps: "Samtliga kategorier",
   },
   {
     icon: FlaskConical,
-    title: "Forskning & analys",
-    sources: ["Kairos Future", "FOI", "SCB", "Riksrevisionen"],
+    title: "Forskning & statistik",
+    sources: ["SCB", "Riksrevisionen", "Kairos Future"],
     color: "bg-purple-100 text-purple-700",
+    maps: "Samtliga kategorier",
   },
 ];
 
 const aiCapabilities = [
-  "Klassificerar varje artikel i 10 huvudområden",
+  "Klassificerar varje artikel i 10 huvudområden med 52 underkategorier",
   "Bedömer relevans (0-100) för offentlig sektor",
+  "Analyserar via tre tvärsgående linser: tidshorisont, påverkan och åtgärdskrav",
   "Genererar konsekvensanalys per kommunstorlek",
-  "Föreslår konkreta åtgärder",
+  "Föreslår konkreta åtgärder anpassade per verksamhetsområde",
   "Genererar veckovisa briefings anpassade per roll",
 ];
 
@@ -116,9 +172,10 @@ export default function OmPage() {
           <p className="text-sm leading-relaxed">
             OmvärldsRadar är en AI-driven plattform för omvärldsbevakning
             specifikt utvecklad för svenska kommuner och regioner. Vi samlar in,
-            analyserar och sammanfattar relevant information från hundratals
-            källor så att beslutsfattare i offentlig sektor alltid har en
-            aktuell och kontextanpassad omvärldsbild.
+            analyserar och sammanfattar relevant information från ett brett urval
+            av myndigheter, branschmedia och EU-institutioner så att
+            beslutsfattare i offentlig sektor alltid har en aktuell och
+            kontextanpassad omvärldsbild.
           </p>
 
           <div className="rounded-lg border border-[var(--brand)]/20 bg-[var(--brand-muted)] p-4">
@@ -133,8 +190,9 @@ export default function OmPage() {
             Genom att kombinera automatiserad datainsamling med avancerad
             AI-analys ger OmvärldsRadar beslutsfattare en helhetsbild av
             förändringar inom lagstiftning, teknik, samhälle och omvärld som
-            påverkar deras verksamhet. Varje artikel klassificeras, analyseras
-            och bedöms utifrån relevans för just din organisation.
+            påverkar deras verksamhet. Varje artikel klassificeras i 10
+            huvudområden, analyseras via tre ramverk och bedöms utifrån relevans
+            för just din organisation.
           </p>
         </CardContent>
       </Card>
@@ -149,7 +207,7 @@ export default function OmPage() {
             <div>
               <CardTitle className="text-lg">Källor vi bevakar</CardTitle>
               <CardDescription>
-                Ett brett urval av svenska och internationella källor
+                Över 25 svenska myndigheter, EU-institutioner och branschmedia
               </CardDescription>
             </div>
           </div>
@@ -176,8 +234,23 @@ export default function OmPage() {
                     </Badge>
                   ))}
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Täcker: {cat.maps}
+                </p>
               </div>
             ))}
+          </div>
+
+          <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+            <p className="text-sm font-medium">10 huvudområden med full täckning</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Våra källor är noggrant utvalda för att täcka samtliga
+              bevakningsområden: Styrning & Demokrati, Digitalisering & Teknik,
+              Välfärd & Omsorg, Utbildning & Kompetens, Klimat, Miljö &
+              Samhällsbyggnad, Trygghet & Beredskap, Ekonomi & Resurser,
+              Arbetsgivare & Organisation, Samhälle & Medborgare samt Innovation
+              & Omställning.
+            </p>
           </div>
 
           <p className="text-xs text-muted-foreground italic">
@@ -304,7 +377,7 @@ export default function OmPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4" />
-                <span>kommunradar.criteroconsulting.se</span>
+                <span>omvarldsradar.criteroconsulting.se</span>
               </div>
             </div>
           </div>

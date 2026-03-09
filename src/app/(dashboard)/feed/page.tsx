@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ExternalLink, Filter, SlidersHorizontal } from "lucide-react";
+import { ExternalLink, Filter, SlidersHorizontal, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { fetchArticles, type Article } from "@/lib/data";
 
 const categoryColors: Record<string, string> = {
   "Styrning & Demokrati": "bg-blue-100 text-blue-700 border-blue-200",
@@ -59,176 +60,47 @@ const categories = [
   "Innovation & Omställning",
 ];
 
-const paverkanLevels = [
-  "Alla",
-  "Direkt reglering",
-  "Indirekt påverkan",
-  "Möjlighet",
-  "Risk/hot",
-];
-
-const atgardLevels = [
-  "Alla",
-  "Agera nu",
-  "Planera",
-  "Bevaka",
-  "Inspireras",
-];
-
-const mockArticles = [
-  {
-    id: "1",
-    title: "NIS2-direktivet: Nya krav på cybersäkerhet för offentlig sektor träder i kraft",
-    source: "Riksdagen.se",
-    date: "2026-03-01",
-    category: "Digitalisering & Teknik",
-    subcategory: "Cybersäkerhet",
-    paverkan: "Direkt reglering",
-    atgard: "Agera nu",
-    tidshorisont: "Akut (0-3 mån)",
-    summary: "Det nya NIS2-direktivet innebär avsevärt skärpta krav på cybersäkerhet för kommuner och regioner. Alla organisationer måste genomföra riskanalyser och implementera tekniska skyddsåtgärder senast Q3 2026.",
-    relevance: 94,
-  },
-  {
-    id: "2",
-    title: "AI-förordningen (EU AI Act): Kommuner måste klassificera AI-system",
-    source: "EU-kommissionen",
-    date: "2026-02-28",
-    category: "Styrning & Demokrati",
-    subcategory: "EU-reglering",
-    paverkan: "Direkt reglering",
-    atgard: "Planera",
-    tidshorisont: "Kort sikt (3-12 mån)",
-    summary: "EU:s AI-förordning kräver att alla kommuner som använder AI-system för myndighetsutövning klassificerar dessa som högrisk-system. Nya transparenskrav gäller från 2026.",
-    relevance: 89,
-  },
-  {
-    id: "3",
-    title: "Statlig utredning föreslår ny modell för kommunal digitalisering",
-    source: "Regeringskansliet",
-    date: "2026-02-27",
-    category: "Ekonomi & Resurser",
-    subcategory: "Statsbidrag",
-    paverkan: "Möjlighet",
-    atgard: "Planera",
-    tidshorisont: "Medellång sikt (1-3 år)",
-    summary: "Utredningen 'Digital kommun 2030' föreslår gemensam digital infrastruktur för alla kommuner. Finansiering via statsbidrag och ny samordningsmyndighet föreslås.",
-    relevance: 82,
-  },
-  {
-    id: "4",
-    title: "Ny rapport: Kriget i Ukraina påverkar kommunal beredskapsplanering",
-    source: "MSB",
-    date: "2026-02-26",
-    category: "Trygghet & Beredskap",
-    subcategory: "Krisberedskap",
-    paverkan: "Indirekt påverkan",
-    atgard: "Bevaka",
-    tidshorisont: "Kort sikt (3-12 mån)",
-    summary: "MSB:s senaste rapport visar att 67% av kommunerna behöver uppdatera sina beredskapsplaner. Särskilt fokus på energiförsörjning och vattensäkerhet.",
-    relevance: 76,
-  },
-  {
-    id: "5",
-    title: "Befolkningsprognoser visar på ökad urbanisering 2026-2030",
-    source: "SCB",
-    date: "2026-02-25",
-    category: "Samhälle & Medborgare",
-    subcategory: "Demografi",
-    paverkan: "Indirekt påverkan",
-    atgard: "Bevaka",
-    tidshorisont: "Lång sikt (3+ år)",
-    summary: "SCB:s nya prognoser visar att 78 av 290 kommuner förväntas minska med mer än 5% till 2030. Konsekvenser för skatteunderlag och serviceförsörjning.",
-    relevance: 71,
-  },
-  {
-    id: "6",
-    title: "EU:s klimatanpassningspaket kräver lokala åtgärdsplaner",
-    source: "EU-kommissionen",
-    date: "2026-02-24",
-    category: "Klimat, Miljö & Samhällsbyggnad",
-    subcategory: "Klimatanpassning",
-    paverkan: "Direkt reglering",
-    atgard: "Planera",
-    tidshorisont: "Medellång sikt (1-3 år)",
-    summary: "Nya EU-krav innebär att alla kommuner med över 20 000 invånare måste ta fram lokala klimatanpassningsplaner senast 2027. Omfattande rapporteringskrav följer.",
-    relevance: 85,
-  },
-  {
-    id: "7",
-    title: "DIGG publicerar nya riktlinjer för öppna data i offentlig sektor",
-    source: "DIGG",
-    date: "2026-02-23",
-    category: "Digitalisering & Teknik",
-    subcategory: "E-tjänster & data",
-    paverkan: "Indirekt påverkan",
-    atgard: "Bevaka",
-    tidshorisont: "Kort sikt (3-12 mån)",
-    summary: "Myndigheten för digital förvaltning publicerar uppdaterade riktlinjer för hur kommuner och regioner ska tillgängliggöra öppna data. Fokus på maskinläsbarhet och standardformat.",
-    relevance: 73,
-  },
-  {
-    id: "8",
-    title: "SKR: Kompetensförsörjningen är välfärdens största utmaning",
-    source: "SKR",
-    date: "2026-02-22",
-    category: "Arbetsgivare & Organisation",
-    subcategory: "Kompetensförsörjning",
-    paverkan: "Risk/hot",
-    atgard: "Agera nu",
-    tidshorisont: "Akut (0-3 mån)",
-    summary: "SKR:s senaste rapport visar att kommuner och regioner behöver rekrytera 410 000 personer fram till 2031. Störst brist inom äldreomsorg, skola och hälso- och sjukvård.",
-    relevance: 88,
-  },
-  {
-    id: "9",
-    title: "Riksrevisionen granskar kommunernas ekonomiska hållbarhet",
-    source: "Riksrevisionen",
-    date: "2026-02-21",
-    category: "Ekonomi & Resurser",
-    subcategory: "Kommunal ekonomi",
-    paverkan: "Indirekt påverkan",
-    atgard: "Bevaka",
-    tidshorisont: "Kort sikt (3-12 mån)",
-    summary: "Riksrevisionens granskning visar att 45 kommuner riskerar att inte klara det lagstadgade balanskravet under 2026. Särskilt småkommuner med vikande skatteunderlag drabbas.",
-    relevance: 68,
-  },
-  {
-    id: "10",
-    title: "NATO-medlemskapet medför nya krav på kommunal totalförsvarsplanering",
-    source: "Försvarsdepartementet",
-    date: "2026-02-20",
-    category: "Trygghet & Beredskap",
-    subcategory: "Totalförsvar",
-    paverkan: "Direkt reglering",
-    atgard: "Agera nu",
-    tidshorisont: "Akut (0-3 mån)",
-    summary: "Sveriges NATO-medlemskap innebär nya krav på kommunernas totalförsvarsplanering. Samtliga kommuner måste upprätta vårdplaner och säkerställa kritisk infrastruktur senast 2027.",
-    relevance: 91,
-  },
-];
+const PAGE_SIZE = 20;
 
 export default function FeedPage() {
   const [selectedCategory, setSelectedCategory] = useState("Alla");
-  const [selectedPaverkan, setSelectedPaverkan] = useState("Alla");
-  const [selectedAtgard, setSelectedAtgard] = useState("Alla");
   const [searchQuery, setSearchQuery] = useState("");
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
 
-  const filteredArticles = mockArticles.filter((article) => {
-    if (selectedCategory !== "Alla" && article.category !== selectedCategory)
-      return false;
-    if (selectedPaverkan !== "Alla" && article.paverkan !== selectedPaverkan)
-      return false;
-    if (selectedAtgard !== "Alla" && article.atgard !== selectedAtgard)
-      return false;
-    if (
-      searchQuery &&
-      !article.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !article.summary.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-      return false;
-    return true;
-  });
+  const loadArticles = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { articles: data, count } = await fetchArticles({
+        category: selectedCategory,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+      });
+      setArticles(data);
+      setTotalCount(count);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, page]);
+
+  useEffect(() => {
+    loadArticles();
+  }, [loadArticles]);
+
+  // Client-side search filter (on loaded articles)
+  const displayed = searchQuery
+    ? articles.filter(
+        (a) =>
+          a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (a.ai_summary || a.summary || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+      )
+    : articles;
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -265,43 +137,14 @@ export default function FeedPage() {
               <select
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setPage(0);
+                }}
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full sm:w-44">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                Påverkan
-              </label>
-              <select
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
-                value={selectedPaverkan}
-                onChange={(e) => setSelectedPaverkan(e.target.value)}
-              >
-                {paverkanLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full sm:w-40">
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                Åtgärdskrav
-              </label>
-              <select
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
-                value={selectedAtgard}
-                onChange={(e) => setSelectedAtgard(e.target.value)}
-              >
-                {atgardLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
                   </option>
                 ))}
               </select>
@@ -311,9 +154,8 @@ export default function FeedPage() {
               size="sm"
               onClick={() => {
                 setSelectedCategory("Alla");
-                setSelectedPaverkan("Alla");
-                setSelectedAtgard("Alla");
                 setSearchQuery("");
+                setPage(0);
               }}
             >
               <Filter className="mr-1 h-3 w-3" />
@@ -326,92 +168,154 @@ export default function FeedPage() {
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Visar {filteredArticles.length} av {mockArticles.length} artiklar
+          {loading
+            ? "Laddar..."
+            : `Visar ${displayed.length} av ${totalCount} artiklar`}
         </p>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Föregående
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Sida {page + 1} av {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Nästa
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Article list */}
-      <div className="space-y-3">
-        {filteredArticles.map((article) => (
-          <Link key={article.id} href={`/article/${article.id}`}>
-            <Card className="transition-shadow hover:shadow-md cursor-pointer">
-              <CardContent className="space-y-2.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={
-                      categoryColors[article.category] ||
-                      "bg-gray-100 text-gray-700 border-gray-200"
-                    }
-                  >
-                    {article.category}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={paverkanColors[article.paverkan]}
-                  >
-                    {article.paverkan}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={atgardColors[article.atgard]}
-                  >
-                    {article.atgard}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={tidshorisontColors[article.tidshorisont]}
-                  >
-                    {article.tidshorisont}
-                  </Badge>
-                </div>
-
-                <h3 className="font-semibold leading-snug">{article.title}</h3>
-
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {article.summary}
-                </p>
-
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <ExternalLink className="h-3 w-3" />
-                    <span>{article.source}</span>
-                    <span>&middot;</span>
-                    <span>{article.date}</span>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {displayed.map((article) => (
+            <Link key={article.id} href={`/article/${article.id}`}>
+              <Card className="transition-shadow hover:shadow-md cursor-pointer">
+                <CardContent className="space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {article.ai_category && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          categoryColors[article.ai_category] ||
+                          "bg-gray-100 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {article.ai_category}
+                      </Badge>
+                    )}
+                    {article.ai_impact && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          paverkanColors[article.ai_impact] ||
+                          "bg-gray-100 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {article.ai_impact}
+                      </Badge>
+                    )}
+                    {article.ai_action && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          atgardColors[article.ai_action] ||
+                          "bg-gray-100 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {article.ai_action}
+                      </Badge>
+                    )}
+                    {article.ai_timeframe && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          tidshorisontColors[article.ai_timeframe] ||
+                          "bg-gray-100 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {article.ai_timeframe}
+                      </Badge>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      Relevans
-                    </span>
-                    <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-[var(--brand)]"
-                        style={{ width: `${article.relevance}%` }}
-                      />
+                  <h3 className="font-semibold leading-snug">{article.title}</h3>
+
+                  {(article.ai_summary || article.summary) && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {article.ai_summary || article.summary}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <ExternalLink className="h-3 w-3" />
+                      <span>{article.source_name}</span>
+                      <span>&middot;</span>
+                      <span>
+                        {article.published_at
+                          ? new Date(article.published_at).toLocaleDateString("sv-SE")
+                          : new Date(article.fetched_at).toLocaleDateString("sv-SE")}
+                      </span>
                     </div>
-                    <span className="text-xs font-medium">
-                      {article.relevance}%
-                    </span>
+
+                    {article.ai_relevance != null && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          Relevans
+                        </span>
+                        <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-[var(--brand)]"
+                            style={{ width: `${article.ai_relevance}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium">
+                          {article.ai_relevance}%
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+
+          {displayed.length === 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <Filter className="mb-3 h-8 w-8 text-muted-foreground/50" />
+                <p className="font-medium">
+                  {totalCount === 0
+                    ? "Inga artiklar hämtade ännu"
+                    : "Inga artiklar matchar filtret"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {totalCount === 0
+                    ? "Artiklar hämtas automatiskt var 6:e timme från konfigurerade källor."
+                    : "Prova att ändra filterinställningarna"}
+                </p>
               </CardContent>
             </Card>
-          </Link>
-        ))}
-
-        {filteredArticles.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Filter className="mb-3 h-8 w-8 text-muted-foreground/50" />
-              <p className="font-medium">Inga artiklar matchar filtret</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Prova att ändra filterinställningarna
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
