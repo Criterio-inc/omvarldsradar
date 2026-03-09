@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Building2, Users, Bell, Save } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Building2, Users, Bell, Save, Loader2, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -29,42 +30,50 @@ const focusAreas = [
   { id: "innovation-omstallning", label: "Innovation & Omställning", checked: true },
 ];
 
-const teamMembers = [
-  {
-    name: "Pär Levander",
-    email: "par.levander@critero.se",
-    role: "Admin",
-    initials: "PL",
-  },
-  {
-    name: "Anna Svensson",
-    email: "anna.svensson@critero.se",
-    role: "Användare",
-    initials: "AS",
-  },
-  {
-    name: "Erik Johansson",
-    email: "erik.johansson@kommun.se",
-    role: "Användare",
-    initials: "EJ",
-  },
-  {
-    name: "Maria Andersson",
-    email: "maria.andersson@kommun.se",
-    role: "Användare",
-    initials: "MA",
-  },
-];
+interface TeamMember {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+}
 
 const roleColors: Record<string, string> = {
-  Admin: "bg-blue-100 text-blue-700 border-blue-200",
-  "Användare": "bg-slate-100 text-slate-700 border-slate-200",
+  admin: "bg-blue-100 text-blue-700 border-blue-200",
+  user: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
+function getInitials(name: string, email: string): string {
+  if (name) {
+    return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  }
+  return email.slice(0, 2).toUpperCase();
+}
+
 export default function SettingsPage() {
-  const [orgName, setOrgName] = useState("Exempelkommun");
+  const [orgName, setOrgName] = useState("");
   const [orgType, setOrgType] = useState("kommun");
   const [orgSize, setOrgSize] = useState("medel");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+
+  const loadTeam = useCallback(async () => {
+    setTeamLoading(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setTeamMembers(data.users || []);
+      }
+    } catch {
+      // silently fail — user may not be admin
+    } finally {
+      setTeamLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTeam();
+  }, [loadTeam]);
   const [areas, setAreas] = useState(focusAreas);
   const [weeklyBriefing, setWeeklyBriefing] = useState(true);
   const [acuteAlerts, setAcuteAlerts] = useState(true);
@@ -213,58 +222,67 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base">Teammedlemmar</CardTitle>
               <CardDescription>
-                Hantera vilka som har tillgång till OmvärldsRadar i din
-                organisation
+                Användare som har tillgång till OmvärldsRadar
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {teamMembers.map((member, index) => (
-                  <div key={index}>
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarFallback className="bg-[var(--brand)] text-xs text-white">
-                          {member.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.email}
-                        </p>
+              {teamLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : teamMembers.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Inga teammedlemmar hittade
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {teamMembers.map((member, index) => (
+                    <div key={member.id}>
+                      <div className="flex items-center gap-4">
+                        <Avatar>
+                          <AvatarFallback className="bg-[var(--brand)] text-xs text-white">
+                            {getInitials(member.full_name, member.email)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium">
+                            {member.full_name || member.email}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {member.email}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            roleColors[member.role] ||
+                            "bg-slate-100 text-slate-700 border-slate-200"
+                          }
+                        >
+                          {member.role === "admin" ? "Admin" : "Användare"}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className={roleColors[member.role]}>
-                        {member.role}
-                      </Badge>
+                      {index < teamMembers.length - 1 && (
+                        <Separator className="mt-3" />
+                      )}
                     </div>
-                    {index < teamMembers.length - 1 && (
-                      <Separator className="mt-3" />
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Bjud in teammedlem</CardTitle>
-              <CardDescription>
-                Skicka en inbjudan till en ny användare
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
-                <Input
-                  placeholder="e-post@kommun.se"
-                  className="max-w-sm"
-                />
-                <Button
-                  className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
-                >
-                  Bjud in
-                </Button>
-              </div>
+            <CardContent className="flex items-center justify-between py-4">
+              <p className="text-sm text-muted-foreground">
+                Använd adminsidan för att bjuda in och hantera användare
+              </p>
+              <Button variant="outline" asChild>
+                <Link href="/admin">
+                  <ShieldCheck className="mr-1.5 h-4 w-4" />
+                  Gå till Admin
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

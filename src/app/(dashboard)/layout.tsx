@@ -17,6 +17,7 @@ import {
   Radar,
   ChevronDown,
   Info,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ const navItems = [
 ];
 
 const bottomNavItems = [
+  { label: "Admin", href: "/admin", icon: ShieldCheck },
   { label: "Om", href: "/om", icon: Info },
   { label: "Inställningar", href: "/settings", icon: Settings },
 ];
