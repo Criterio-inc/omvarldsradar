@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Radar } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const isDevMode =
@@ -27,17 +29,27 @@ export default function LoginPage() {
     e.preventDefault();
     if (!email) return;
     setIsLoading(true);
+    setError(null);
 
     if (isDevMode) {
-      // Dev mode: skip auth, go straight to dashboard
       router.push("/");
       return;
     }
 
-    // Simulate sending magic link
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
     setIsLoading(false);
-    setIsSent(true);
+    if (error) {
+      setError(error.message);
+    } else {
+      setIsSent(true);
+    }
   }
 
   return (
@@ -105,6 +117,11 @@ export default function LoginPage() {
               </div>
             ) : (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                {error && (
+                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="email"
