@@ -1,45 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Clock, Sparkles, ArrowRight, Radar } from "lucide-react";
+import Link from "next/link";
+import {
+  Search,
+  Loader2,
+  ExternalLink,
+  Inbox,
+} from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-const recentSearches = [
-  {
-    query: "NIS2 cybersäkerhet kommuner",
-    date: "2026-03-01",
-    results: 8,
-  },
-  {
-    query: "AI Act klassificering myndighetsutövning",
-    date: "2026-02-28",
-    results: 5,
-  },
-  {
-    query: "totalförsvarsplanering NATO",
-    date: "2026-02-27",
-    results: 12,
-  },
-  {
-    query: "klimatanpassning EU krav 2027",
-    date: "2026-02-25",
-    results: 6,
-  },
-  {
-    query: "kompetensförsörjning välfärd",
-    date: "2026-02-24",
-    results: 9,
-  },
-];
+import {
+  categoryColors,
+  paverkanColors,
+  atgardColors,
+} from "@/lib/constants";
+import { searchArticles, type Article } from "@/lib/data";
 
 const suggestedTopics = [
   "Cybersäkerhet",
@@ -50,24 +31,34 @@ const suggestedTopics = [
   "Öppna data",
   "Äldreomsorg",
   "Kommunal ekonomi",
-  "Integration",
-  "Megatrender",
 ];
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState<Article[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function doSearch(query: string) {
+    if (!query.trim()) return;
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const data = await searchArticles(query.trim());
+      setResults(data);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setHasSearched(true);
-    }
+    doSearch(searchQuery);
   }
 
   function handleTopicClick(topic: string) {
     setSearchQuery(topic);
-    setHasSearched(true);
+    doSearch(topic);
   }
 
   return (
@@ -90,7 +81,10 @@ export default function SearchPage() {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  if (!e.target.value) setHasSearched(false);
+                  if (!e.target.value) {
+                    setHasSearched(false);
+                    setResults([]);
+                  }
                 }}
                 className="h-12 pl-12 text-base"
                 autoFocus
@@ -114,69 +108,101 @@ export default function SearchPage() {
         </CardContent>
       </Card>
 
-      {hasSearched ? (
-        /* AI search result placeholder */
-        <Card className="border-[var(--brand)]/20 bg-[var(--brand-muted)]">
-          <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--brand)]/10">
-              <Sparkles className="h-8 w-8 text-[var(--brand)]" />
-            </div>
-            <div className="max-w-md">
-              <h3 className="text-lg font-semibold">
-                AI-driven sökning kommer i nästa fas
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                I nästa version kommer du kunna ställa frågor på naturligt språk
-                och få AI-genererade svar baserade på alla bevakade källor. Till
-                exempel: &quot;Vilka EU-regelverk påverkar min kommun
-                2026?&quot;
-              </p>
-            </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm">
-              <Radar className="h-4 w-4 text-[var(--brand)]" />
-              <span className="text-muted-foreground">
-                Drivet av Claude AI + Exa.ai
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        /* Recent searches */
-        <div className="space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            Senaste sökningar
-          </h2>
-
-          <div className="space-y-2">
-            {recentSearches.map((search, index) => (
-              <Card
-                key={index}
-                className="cursor-pointer transition-shadow hover:shadow-md"
-                onClick={() => {
-                  setSearchQuery(search.query);
-                  setHasSearched(true);
-                }}
-              >
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <Search className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium">{search.query}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {search.date} &middot; {search.results} resultat
-                      </p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Results */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      )}
+      ) : hasSearched ? (
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {results.length} resultat för &quot;{searchQuery}&quot;
+          </p>
+
+          {results.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <Inbox className="mb-3 h-8 w-8 text-muted-foreground/50" />
+                <p className="font-medium">Inga resultat</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Prova att söka med andra ord eller bredare termer.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {results.map((article) => (
+                <Link key={article.id} href={`/article/${article.id}`}>
+                  <Card className="transition-shadow hover:shadow-md cursor-pointer">
+                    <CardContent className="space-y-2.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {article.ai_category && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              categoryColors[article.ai_category] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_category}
+                          </Badge>
+                        )}
+                        {article.ai_impact && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              paverkanColors[article.ai_impact] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_impact}
+                          </Badge>
+                        )}
+                        {article.ai_action && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              atgardColors[article.ai_action] ||
+                              "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+                          >
+                            {article.ai_action}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <h3 className="font-semibold leading-snug">
+                        {article.title}
+                      </h3>
+
+                      {(article.ai_summary || article.summary) && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {article.ai_summary || article.summary}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                        <ExternalLink className="h-3 w-3" />
+                        <span>{article.source_name}</span>
+                        <span>&middot;</span>
+                        <span>
+                          {article.published_at
+                            ? new Date(
+                                article.published_at
+                              ).toLocaleDateString("sv-SE")
+                            : new Date(
+                                article.fetched_at
+                              ).toLocaleDateString("sv-SE")}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

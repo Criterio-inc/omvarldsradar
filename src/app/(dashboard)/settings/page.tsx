@@ -75,6 +75,31 @@ export default function SettingsPage() {
   const [acuteAlerts, setAcuteAlerts] = useState(true);
   const [trendDigest, setTrendDigest] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [prefsLoading, setPrefsLoading] = useState(true);
+
+  // Load notification preferences
+  useEffect(() => {
+    async function loadPrefs() {
+      try {
+        const res = await fetch("/api/notifications/preferences");
+        if (res.ok) {
+          const data = await res.json();
+          const prefs = data.preferences;
+          if (prefs) {
+            setWeeklyBriefing(prefs.weekly_briefing ?? true);
+            setAcuteAlerts(prefs.acute_alerts ?? true);
+            setTrendDigest(prefs.trend_digest ?? false);
+          }
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setPrefsLoading(false);
+      }
+    }
+    loadPrefs();
+  }, []);
 
   function toggleArea(id: string) {
     setAreas((prev) =>
@@ -84,9 +109,32 @@ export default function SettingsPage() {
     );
   }
 
-  function handleSave() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/notifications/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preferences: {
+            enabled: weeklyBriefing || acuteAlerts || trendDigest,
+            email_frequency: weeklyBriefing ? "weekly" : "none",
+            weekly_briefing: weeklyBriefing,
+            acute_alerts: acuteAlerts,
+            trend_digest: trendDigest,
+            categories: areas.filter((a) => a.checked).map((a) => a.label),
+          },
+        }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -199,9 +247,14 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Button
               onClick={handleSave}
+              disabled={saving}
               className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
             >
-              <Save className="mr-1.5 h-4 w-4" />
+              {saving ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-1.5 h-4 w-4" />
+              )}
               Spara ändringar
             </Button>
             {saved && (
@@ -295,6 +348,12 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {prefsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <p className="font-medium">Veckobriefing</p>
@@ -360,15 +419,22 @@ export default function SettingsPage() {
                   />
                 </button>
               </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <div className="flex items-center gap-3">
             <Button
               onClick={handleSave}
+              disabled={saving || prefsLoading}
               className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
             >
-              <Save className="mr-1.5 h-4 w-4" />
+              {saving ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-1.5 h-4 w-4" />
+              )}
               Spara inställningar
             </Button>
             {saved && (

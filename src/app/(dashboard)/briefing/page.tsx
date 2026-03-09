@@ -1,12 +1,15 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   CalendarDays,
-  CheckCircle2,
   Clock,
   FileText,
   Mail,
+  Loader2,
+  Inbox,
 } from "lucide-react";
 import {
   Card,
@@ -21,112 +24,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   categoryColors,
   paverkanColors,
-  statusLabels,
-  statusColors,
-  priorityColors,
+  atgardColors,
 } from "@/lib/constants";
-
-const importantItems = [
-  {
-    title: "NIS2-direktivet träder i kraft",
-    description:
-      "Nya cybersäkerhetskrav för offentlig sektor. Kommuner och regioner måste genomföra riskanalyser, implementera tekniska skyddsåtgärder och utbilda personal. Deadline för första rapportering: Q3 2026.",
-    category: "Digitalisering & Teknik",
-    paverkan: "Direkt reglering",
-    atgard: "Agera nu",
-    actionRequired: true,
-  },
-  {
-    title: "EU AI Act: Klassificeringskrav för AI-system",
-    description:
-      "Alla AI-system som används för myndighetsutövning måste klassificeras och registreras. Särskilt relevant för kommuner som använder AI i beslutsstöd, chatbotar och ärendehantering.",
-    category: "Styrning & Demokrati",
-    paverkan: "Direkt reglering",
-    atgard: "Planera",
-    actionRequired: true,
-  },
-  {
-    title: "NATO-anpassning av totalförsvarsplanering",
-    description:
-      "Försvarsdepartementet har publicerat nya riktlinjer för kommunal totalförsvarsplanering i linje med NATO-standarden. Rörande vårdplaner, kritisk infrastruktur och samverkan med Försvarsmakten.",
-    category: "Trygghet & Beredskap",
-    paverkan: "Direkt reglering",
-    atgard: "Agera nu",
-    actionRequired: false,
-  },
-];
-
-const deadlines = [
-  {
-    date: "2026-03-15",
-    title: "Remissvar: Digital kommun 2030",
-    description: "Sista dag för att lämna remissvar på utredningen.",
-  },
-  {
-    date: "2026-04-01",
-    title: "NIS2: Anmälan till tillsynsmyndighet",
-    description: "Alla organisationer som omfattas måste anmäla sig.",
-  },
-  {
-    date: "2026-06-30",
-    title: "AI Act: Klassificeringsrapport",
-    description: "Första rapporten över använda AI-system ska vara inlämnad.",
-  },
-  {
-    date: "2026-07-01",
-    title: "Visselblåsarlagen: Rapporteringskanal",
-    description:
-      "Alla kommuner med 50+ anställda måste ha interna rapporteringskanaler.",
-  },
-];
-
-const recommendations = [
-  {
-    title: "Genomför NIS2 gap-analys",
-    description:
-      "Kartlägg nuvarande cybersäkerhetsstatus mot NIS2-kraven. Prioritera identifiering av kritiska informationssystem och tillgångar.",
-    priority: "Hög",
-    status: "ej_paborjad",
-  },
-  {
-    title: "Inventera AI-system",
-    description:
-      "Skapa en fullständig inventering av alla AI-system som används i verksamheten, inklusive tredjepartslösningar och chatbotar.",
-    priority: "Hög",
-    status: "ej_paborjad",
-  },
-  {
-    title: "Uppdatera beredskapsplan",
-    description:
-      "Granska och uppdatera den kommunala beredskapsplanen i linje med MSB:s nya rekommendationer och NATO-anpassningen.",
-    priority: "Medel",
-    status: "pagaende",
-  },
-  {
-    title: "Lämna remissvar på Digital kommun 2030",
-    description:
-      "Ta ställning till förslagen i utredningen och formulera ett remissvar. Deadline: 15 mars 2026.",
-    priority: "Medel",
-    status: "ej_paborjad",
-  },
-  {
-    title: "Planera för klimatanpassningsplan",
-    description:
-      "Påbörja arbetet med den lokala klimatanpassningsplanen som EU-regelverket kräver senast 2027.",
-    priority: "Låg",
-    status: "ej_paborjad",
-  },
-];
-
-const archivedBriefings = [
-  { date: "2026-02-24", title: "Vecka 9 - Veckobriefing", articles: 14 },
-  { date: "2026-02-17", title: "Vecka 8 - Veckobriefing", articles: 11 },
-  { date: "2026-02-10", title: "Vecka 7 - Veckobriefing", articles: 9 },
-  { date: "2026-02-03", title: "Vecka 6 - Veckobriefing", articles: 16 },
-  { date: "2026-01-27", title: "Vecka 5 - Veckobriefing", articles: 12 },
-];
+import {
+  fetchLatestBriefing,
+  fetchBriefingArchive,
+  fetchUrgentArticles,
+  type Briefing,
+  type Article,
+} from "@/lib/data";
 
 export default function BriefingPage() {
+  const [briefing, setBriefing] = useState<Briefing | null>(null);
+  const [archive, setArchive] = useState<Briefing[]>([]);
+  const [urgentArticles, setUrgentArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [b, a, u] = await Promise.all([
+        fetchLatestBriefing(),
+        fetchBriefingArchive(10),
+        fetchUrgentArticles(5),
+      ]);
+      setBriefing(b);
+      setArchive(a);
+      setUrgentArticles(u);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -143,182 +84,218 @@ export default function BriefingPage() {
         </TabsList>
 
         <TabsContent value="senaste" className="mt-6 space-y-6">
-          {/* Briefing header */}
-          <Card className="border-l-4 border-l-[var(--brand)]">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-[var(--brand)]" />
-                <CardTitle>Veckobriefing - Vecka 10</CardTitle>
-              </div>
-              <CardDescription>
-                Genererad 3 mars 2026 &middot; Baserad på 12 bevakade artiklar
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          {briefing ? (
+            <>
+              {/* Briefing header */}
+              <Card className="border-l-4 border-l-[var(--brand)]">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-[var(--brand)]" />
+                    <CardTitle>{briefing.title}</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Genererad{" "}
+                    {new Date(briefing.generated_at).toLocaleDateString("sv-SE")}{" "}
+                    &middot; Baserad på {briefing.article_count} bevakade
+                    artiklar
+                  </CardDescription>
+                </CardHeader>
+              </Card>
 
-          {/* Veckans viktigaste */}
-          <div className="space-y-4">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Veckans viktigaste
-            </h2>
-
-            <div className="space-y-3">
-              {importantItems.map((item, index) => (
-                <Card key={index}>
-                  <CardContent className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={
-                          categoryColors[item.category] ||
-                          "bg-gray-100 text-gray-700 border-gray-200"
-                        }
-                      >
-                        {item.category}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={
-                          paverkanColors[item.paverkan] ||
-                          "bg-gray-100 text-gray-700 border-gray-200"
-                        }
-                      >
-                        {item.paverkan}
-                      </Badge>
-                      {item.actionRequired && (
-                        <Badge
-                          variant="outline"
-                          className="bg-amber-100 text-amber-700 border-amber-200"
-                        >
-                          Åtgärd krävs
-                        </Badge>
-                      )}
-                    </div>
-                    <h3 className="font-semibold">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {item.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Kommande deadlines */}
-          <div className="space-y-4">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Clock className="h-5 w-5 text-blue-500" />
-              Kommande deadlines
-            </h2>
-
-            <Card>
-              <CardContent>
-                <div className="space-y-4">
-                  {deadlines.map((deadline, index) => (
-                    <div key={index}>
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                          <CalendarDays className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{deadline.title}</h4>
-                            <Badge variant="outline" className="text-xs">
-                              {deadline.date}
-                            </Badge>
-                          </div>
-                          <p className="mt-0.5 text-sm text-muted-foreground">
-                            {deadline.description}
-                          </p>
-                        </div>
-                      </div>
-                      {index < deadlines.length - 1 && (
-                        <Separator className="mt-4" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Separator />
-
-          {/* Rekommenderade åtgärder */}
-          <div className="space-y-4">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              Rekommenderade åtgärder
-            </h2>
-
-            <div className="space-y-3">
-              {recommendations.map((rec, index) => (
-                <Card key={index}>
-                  <CardContent>
-                    <div className="flex items-start gap-4">
-                      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-muted">
-                        <span className="text-xs font-bold text-muted-foreground">
-                          {index + 1}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="font-medium">{rec.title}</h4>
-                          <Badge
-                            variant="outline"
-                            className={statusColors[rec.status]}
-                          >
-                            {statusLabels[rec.status]}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {rec.description}
-                        </p>
-                        <p className="text-xs">
-                          Prioritet:{" "}
-                          <span
-                            className={`font-medium ${priorityColors[rec.priority]}`}
-                          >
-                            {rec.priority}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="arkiv" className="mt-6 space-y-4">
-          <div className="space-y-3">
-            {archivedBriefings.map((briefing, index) => (
-              <Card
-                key={index}
-                className="cursor-pointer transition-shadow hover:shadow-md"
-              >
+              {/* Briefing content */}
+              <Card>
                 <CardContent>
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium">{briefing.title}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {briefing.date} &middot; {briefing.articles} artiklar
-                        analyserade
+                  <div className="prose prose-sm max-w-none">
+                    {briefing.content.split("\n\n").map((paragraph, index) => (
+                      <p
+                        key={index}
+                        className="mb-4 leading-relaxed text-foreground last:mb-0"
+                      >
+                        {paragraph}
                       </p>
-                    </div>
-                    <Badge variant="secondary">{briefing.date}</Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+
+              {/* Categories covered */}
+              {briefing.categories_covered.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {briefing.categories_covered.map((cat) => (
+                    <Badge
+                      key={cat}
+                      variant="outline"
+                      className={
+                        categoryColors[cat] ||
+                        "bg-gray-100 text-gray-700 border-gray-200"
+                      }
+                    >
+                      {cat}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <Inbox className="mb-3 h-8 w-8 text-muted-foreground/50" />
+                <p className="font-medium">Inga briefings genererade ännu</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Briefings skapas automatiskt varje vecka baserat på bevakade
+                  artiklar. Den första genereras när artiklar har hämtats.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Urgent articles requiring action */}
+          {urgentArticles.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h2 className="flex items-center gap-2 text-lg font-semibold">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  Kräver åtgärd
+                </h2>
+                <div className="space-y-3">
+                  {urgentArticles.map((article) => (
+                    <Link key={article.id} href={`/article/${article.id}`}>
+                      <Card className="transition-shadow hover:shadow-md cursor-pointer">
+                        <CardContent className="space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {article.ai_category && (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  categoryColors[article.ai_category] ||
+                                  "bg-gray-100 text-gray-700 border-gray-200"
+                                }
+                              >
+                                {article.ai_category}
+                              </Badge>
+                            )}
+                            {article.ai_impact && (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  paverkanColors[article.ai_impact] ||
+                                  "bg-gray-100 text-gray-700 border-gray-200"
+                                }
+                              >
+                                {article.ai_impact}
+                              </Badge>
+                            )}
+                            {article.ai_action && (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  atgardColors[article.ai_action] ||
+                                  "bg-gray-100 text-gray-700 border-gray-200"
+                                }
+                              >
+                                {article.ai_action}
+                              </Badge>
+                            )}
+                          </div>
+                          <h3 className="font-semibold">{article.title}</h3>
+                          {article.ai_summary && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {article.ai_summary}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Upcoming deadlines — articles with acute timeframe */}
+          {urgentArticles.some((a) => a.ai_timeframe === "Akut (0-3 mån)") && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h2 className="flex items-center gap-2 text-lg font-semibold">
+                  <Clock className="h-5 w-5 text-blue-500" />
+                  Akuta tidsfrister
+                </h2>
+                <Card>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {urgentArticles
+                        .filter((a) => a.ai_timeframe === "Akut (0-3 mån)")
+                        .map((article, index, arr) => (
+                          <div key={article.id}>
+                            <Link href={`/article/${article.id}`}>
+                              <div className="flex items-start gap-4 cursor-pointer hover:bg-muted/30 rounded-lg p-1 -m-1 transition-colors">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                                  <CalendarDays className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium">
+                                    {article.title}
+                                  </h4>
+                                  <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
+                                    {article.ai_summary || article.summary}
+                                  </p>
+                                </div>
+                              </div>
+                            </Link>
+                            {index < arr.length - 1 && (
+                              <Separator className="mt-4" />
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="arkiv" className="mt-6 space-y-4">
+          {archive.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="mb-3 h-8 w-8 text-muted-foreground/50" />
+                <p className="font-medium">Inget arkiv ännu</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Tidigare briefings visas här efterhand.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {archive.map((b) => (
+                <Card
+                  key={b.id}
+                  className="cursor-pointer transition-shadow hover:shadow-md"
+                >
+                  <CardContent>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium">{b.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(b.generated_at).toLocaleDateString("sv-SE")}{" "}
+                          &middot; {b.article_count} artiklar analyserade
+                        </p>
+                      </div>
+                      <Badge variant="secondary">
+                        {new Date(b.generated_at).toLocaleDateString("sv-SE")}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
