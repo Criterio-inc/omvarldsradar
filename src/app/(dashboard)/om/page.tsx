@@ -147,7 +147,7 @@ export default function OmPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Om OmvärldsRadar</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Om OmvärldsRadar</h1>
         <p className="text-muted-foreground">
           AI-driven omvärldsbevakning för svensk offentlig sektor
         </p>

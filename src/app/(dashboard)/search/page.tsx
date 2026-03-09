@@ -73,7 +73,7 @@ export default function SearchPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Sök</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Sök</h1>
         <p className="text-muted-foreground">
           Sök i alla bevakade källor och analyser
         </p>

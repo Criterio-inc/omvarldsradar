@@ -206,8 +206,8 @@ function wrapInTemplate(subject: string, body: string): string {
 <html lang="sv">
 <head><meta charset="utf-8"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1a1a1a;">
-  <div style="border-bottom: 3px solid #2563eb; padding-bottom: 16px; margin-bottom: 24px;">
-    <h1 style="font-size: 20px; margin: 0; color: #2563eb;">OmvärldsRadar</h1>
+  <div style="border-bottom: 3px solid #1e6b8a; padding-bottom: 16px; margin-bottom: 24px;">
+    <h1 style="font-size: 20px; margin: 0; color: #1e6b8a;">OmvärldsRadar</h1>
     <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0;">AI-driven omvärldsbevakning för offentlig sektor</p>
   </div>
 
@@ -219,7 +219,7 @@ function wrapInTemplate(subject: string, body: string): string {
 
   <div style="border-top: 1px solid #e5e7eb; margin-top: 32px; padding-top: 16px; font-size: 12px; color: #9ca3af;">
     <p>Detta mail skickades automatiskt av OmvärldsRadar.</p>
-    <p>Hantera dina notifieringsinställningar på <a href="https://omvarldsradar.criteroconsulting.se/settings" style="color: #2563eb;">omvarldsradar.criteroconsulting.se/settings</a></p>
+    <p>Hantera dina notifieringsinställningar på <a href="https://omvarldsradar.criteroconsulting.se/settings" style="color: #1e6b8a;">omvarldsradar.criteroconsulting.se/settings</a></p>
     <p style="margin-top: 8px;">Critero Consulting AB &middot; Curago AB</p>
   </div>
 </body>

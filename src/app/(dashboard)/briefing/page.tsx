@@ -18,6 +18,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  categoryColors,
+  paverkanColors,
+  statusLabels,
+  statusColors,
+  priorityColors,
+} from "@/lib/constants";
 
 const importantItems = [
   {
@@ -48,19 +55,6 @@ const importantItems = [
     actionRequired: false,
   },
 ];
-
-const categoryBadgeColors: Record<string, string> = {
-  "Digitalisering & Teknik": "bg-purple-100 text-purple-700 border-purple-200",
-  "Styrning & Demokrati": "bg-blue-100 text-blue-700 border-blue-200",
-  "Trygghet & Beredskap": "bg-slate-100 text-slate-700 border-slate-200",
-};
-
-const paverkanBadgeColors: Record<string, string> = {
-  "Direkt reglering": "bg-red-100 text-red-700 border-red-200",
-  "Indirekt påverkan": "bg-orange-100 text-orange-700 border-orange-200",
-  "Möjlighet": "bg-green-100 text-green-700 border-green-200",
-  "Risk/hot": "bg-rose-100 text-rose-700 border-rose-200",
-};
 
 const deadlines = [
   {
@@ -132,29 +126,11 @@ const archivedBriefings = [
   { date: "2026-01-27", title: "Vecka 5 - Veckobriefing", articles: 12 },
 ];
 
-const statusLabels: Record<string, string> = {
-  ej_paborjad: "Ej påbörjad",
-  pagaende: "Pågående",
-  klar: "Klar",
-};
-
-const statusColors: Record<string, string> = {
-  ej_paborjad: "bg-slate-100 text-slate-700 border-slate-200",
-  pagaende: "bg-blue-100 text-blue-700 border-blue-200",
-  klar: "bg-green-100 text-green-700 border-green-200",
-};
-
-const priorityColors: Record<string, string> = {
-  "Hög": "text-red-600",
-  Medel: "text-orange-600",
-  "Låg": "text-green-600",
-};
-
 export default function BriefingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Briefing</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Briefing</h1>
         <p className="text-muted-foreground">
           Sammanfattade insikter och rekommendationer
         </p>
@@ -195,7 +171,7 @@ export default function BriefingPage() {
                       <Badge
                         variant="outline"
                         className={
-                          categoryBadgeColors[item.category] ||
+                          categoryColors[item.category] ||
                           "bg-gray-100 text-gray-700 border-gray-200"
                         }
                       >
@@ -204,7 +180,7 @@ export default function BriefingPage() {
                       <Badge
                         variant="outline"
                         className={
-                          paverkanBadgeColors[item.paverkan] ||
+                          paverkanColors[item.paverkan] ||
                           "bg-gray-100 text-gray-700 border-gray-200"
                         }
                       >

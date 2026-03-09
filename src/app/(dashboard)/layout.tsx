@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   Newspaper,
@@ -55,7 +56,13 @@ const bottomNavItems = [
   { label: "Inställningar", href: "/settings", icon: Settings },
 ];
 
-function SidebarContent({ pathname }: { pathname: string }) {
+interface UserProfile {
+  name: string;
+  initials: string;
+  org: string;
+}
+
+function SidebarContent({ pathname, user }: { pathname: string; user: UserProfile }) {
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
@@ -124,15 +131,15 @@ function SidebarContent({ pathname }: { pathname: string }) {
         <div className="flex items-center gap-3">
           <Avatar size="sm">
             <AvatarFallback className="bg-[#1e6b8a] text-xs text-white">
-              PL
+              {user.initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-white">
-              Pär Levander
+              {user.name}
             </p>
             <p className="truncate text-xs text-slate-400">
-              Critero Consulting
+              {user.org}
             </p>
           </div>
         </div>
@@ -148,12 +155,41 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile>({
+    name: "",
+    initials: "",
+    org: "",
+  });
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, role, org_id, organizations(name)")
+        .eq("id", authUser.id)
+        .single();
+
+      const name = profile?.full_name || authUser.email?.split("@")[0] || "";
+      const initials = name
+        ? name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
+        : (authUser.email || "").slice(0, 2).toUpperCase();
+      const orgs = profile?.organizations as unknown as { name: string }[] | { name: string } | null;
+      const org = Array.isArray(orgs) ? orgs[0]?.name || "" : orgs?.name || "";
+
+      setUser({ name, initials, org });
+    }
+    loadUser();
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar */}
       <aside className="hidden w-[260px] shrink-0 bg-slate-900 lg:block">
-        <SidebarContent pathname={pathname} />
+        <SidebarContent pathname={pathname} user={user} />
       </aside>
 
       {/* Main area */}
@@ -176,11 +212,17 @@ export default function DashboardLayout({
               <SheetHeader className="sr-only">
                 <SheetTitle>Navigation</SheetTitle>
               </SheetHeader>
-              <SidebarContent pathname={pathname} />
+              <SidebarContent pathname={pathname} user={user} />
             </SheetContent>
           </Sheet>
 
-          {/* Search */}
+          {/* Search — full bar on desktop, icon link on mobile */}
+          <Button variant="ghost" size="icon" className="md:hidden" asChild>
+            <Link href="/search">
+              <Search className="h-5 w-5" />
+              <span className="sr-only">Sök</span>
+            </Link>
+          </Button>
           <div className="relative hidden flex-1 md:block md:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -208,11 +250,11 @@ export default function DashboardLayout({
                 >
                   <Avatar size="sm">
                     <AvatarFallback className="bg-[#1e6b8a] text-xs text-white">
-                      PL
+                      {user.initials || ".."}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden text-sm font-medium md:inline-block">
-                    Pär Levander
+                    {user.name || "Laddar..."}
                   </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </Button>

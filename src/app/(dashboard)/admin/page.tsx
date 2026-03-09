@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { roleColors } from "@/lib/constants";
 
 interface UserItem {
   id: string;
@@ -38,11 +39,6 @@ interface InviteResult {
   success: boolean;
   error?: string;
 }
-
-const roleColors: Record<string, string> = {
-  admin: "bg-blue-100 text-blue-700 border-blue-200",
-  user: "bg-slate-100 text-slate-700 border-slate-200",
-};
 
 function getInitials(name: string, email: string): string {
   if (name) {
@@ -239,7 +235,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Administration</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Administration</h1>
         <p className="text-muted-foreground">
           Hantera användare och bjud in nya teammedlemmar
         </p>
@@ -334,7 +330,7 @@ export default function AdminPage() {
                           onClick={() => removeCsvEmail(email)}
                           className="ml-0.5 rounded-full p-0.5 hover:bg-muted"
                         >
-                          <XCircle className="h-3 w-3" />
+                          <XCircle className="h-4 w-4" />
                         </button>
                       </Badge>
                     ))}
@@ -418,21 +414,23 @@ export default function AdminPage() {
             <div className="space-y-3">
               {users.map((user, index) => (
                 <div key={user.id}>
-                  <div className="flex items-center gap-4">
-                    <Avatar>
-                      <AvatarFallback className="bg-[var(--brand)] text-xs text-white">
-                        {getInitials(user.full_name, user.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium">
-                        {user.full_name || user.email}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {user.email}
-                      </p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Avatar>
+                        <AvatarFallback className="bg-[var(--brand)] text-xs text-white">
+                          {getInitials(user.full_name, user.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {user.full_name || user.email}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-11 sm:ml-0">
                       <select
                         className="h-8 rounded-md border border-input bg-transparent px-2 py-0.5 text-xs shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
                         value={user.role}

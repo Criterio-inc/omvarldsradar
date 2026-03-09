@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { roleColors } from "@/lib/constants";
 
 const focusAreas = [
   { id: "styrning-demokrati", label: "Styrning & Demokrati", checked: true },
@@ -36,11 +37,6 @@ interface TeamMember {
   full_name: string;
   role: string;
 }
-
-const roleColors: Record<string, string> = {
-  admin: "bg-blue-100 text-blue-700 border-blue-200",
-  user: "bg-slate-100 text-slate-700 border-slate-200",
-};
 
 function getInitials(name: string, email: string): string {
   if (name) {
@@ -96,7 +92,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Inställningar</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Inställningar</h1>
         <p className="text-muted-foreground">
           Hantera din organisation, team och notifieringar
         </p>
@@ -191,7 +187,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={area.checked}
                       onChange={() => toggleArea(area.id)}
-                      className="h-4 w-4 rounded border-gray-300 text-[var(--brand)] focus:ring-[var(--brand)] accent-[var(--brand)]"
+                      className="h-5 w-5 rounded border-gray-300 text-[var(--brand)] focus:ring-[var(--brand)] accent-[var(--brand)]"
                     />
                     <span className="text-sm font-medium">{area.label}</span>
                   </label>
@@ -309,12 +305,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => setWeeklyBriefing(!weeklyBriefing)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                     weeklyBriefing ? "bg-[var(--brand)]" : "bg-gray-200"
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
                       weeklyBriefing ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
@@ -331,12 +327,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => setAcuteAlerts(!acuteAlerts)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                     acuteAlerts ? "bg-[var(--brand)]" : "bg-gray-200"
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
                       acuteAlerts ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
@@ -353,12 +349,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => setTrendDigest(!trendDigest)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                     trendDigest ? "bg-[var(--brand)]" : "bg-gray-200"
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
                       trendDigest ? "translate-x-6" : "translate-x-1"
                     }`}
                   />

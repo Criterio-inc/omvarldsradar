@@ -91,7 +91,7 @@ export default function TrendsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Trender</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Trender</h1>
         <p className="text-muted-foreground">
           Analys och trender över tid i bevakade källor
         </p>
@@ -106,7 +106,7 @@ export default function TrendsPage() {
             <CardDescription>Senaste 8 veckorna</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={weeklyData}
@@ -170,7 +170,7 @@ export default function TrendsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -225,7 +225,7 @@ export default function TrendsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={frameworkData}
@@ -279,7 +279,7 @@ export default function TrendsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={impactData}
