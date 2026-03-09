@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
@@ -60,6 +60,7 @@ interface UserProfile {
   name: string;
   initials: string;
   org: string;
+  role: string;
 }
 
 function SidebarContent({ pathname, user }: { pathname: string; user: UserProfile }) {
@@ -97,7 +98,7 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
                     : "text-slate-300 hover:bg-slate-800 hover:text-white"
                 )}
               >
-                <item.icon className="h-4.5 w-4.5" />
+                <item.icon className="h-5 w-5" />
                 {item.label}
               </Link>
             );
@@ -105,7 +106,9 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
 
           <Separator className="my-3 bg-slate-700/50" />
 
-          {bottomNavItems.map((item) => {
+          {bottomNavItems
+            .filter((item) => item.href !== "/admin" || user.role === "admin")
+            .map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link
@@ -118,7 +121,7 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
                     : "text-slate-300 hover:bg-slate-800 hover:text-white"
                 )}
               >
-                <item.icon className="h-4.5 w-4.5" />
+                <item.icon className="h-5 w-5" />
                 {item.label}
               </Link>
             );
@@ -154,11 +157,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<UserProfile>({
     name: "",
     initials: "",
     org: "",
+    role: "",
   });
 
   useEffect(() => {
@@ -179,11 +184,18 @@ export default function DashboardLayout({
         : (authUser.email || "").slice(0, 2).toUpperCase();
       const orgs = profile?.organizations as unknown as { name: string }[] | { name: string } | null;
       const org = Array.isArray(orgs) ? orgs[0]?.name || "" : orgs?.name || "";
+      const role = profile?.role || "viewer";
 
-      setUser({ name, initials, org });
+      setUser({ name, initials, org, role });
     }
     loadUser();
   }, []);
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -223,21 +235,27 @@ export default function DashboardLayout({
               <span className="sr-only">Sök</span>
             </Link>
           </Button>
-          <div className="relative hidden flex-1 md:block md:max-w-md">
+          <form
+            className="relative hidden flex-1 md:block md:max-w-md"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = (e.currentTarget.elements.namedItem("q") as HTMLInputElement)?.value?.trim();
+              if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
+              else router.push("/search");
+            }}
+          >
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              name="q"
               placeholder="Sök artiklar, trender, ämnesområden..."
               className="pl-9 bg-muted/50 border-0"
             />
-          </div>
+          </form>
 
           <div className="ml-auto flex items-center gap-2">
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                3
-              </span>
               <span className="sr-only">Notifieringar</span>
             </Button>
 
@@ -275,7 +293,7 @@ export default function DashboardLayout({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logga ut
                 </DropdownMenuItem>

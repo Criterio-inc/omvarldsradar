@@ -146,7 +146,16 @@ ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE briefings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notification_queue ENABLE ROW LEVEL SECURITY;
 
--- Profiles: användare ser sin egen profil + kollegor i samma org
+-- SECURITY DEFINER-funktion: undviker RLS-rekursion på profiles
+-- Alla policies som behöver kolla org_id använder denna istället för subquery
+CREATE OR REPLACE FUNCTION auth_user_org_id()
+RETURNS UUID
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+  SELECT org_id FROM profiles WHERE id = auth.uid()
+$$;
+
+-- Profiles: användare ser sin egen profil
 CREATE POLICY "Users can view own profile"
   ON profiles FOR SELECT
   USING (auth.uid() = id);
@@ -155,24 +164,25 @@ CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id);
 
+-- Profiles: användare ser kollegor i samma org (via SECURITY DEFINER)
 CREATE POLICY "Users can view org members"
   ON profiles FOR SELECT
-  USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+  USING (org_id = auth_user_org_id());
 
 -- Organizations: användare ser sin egen organisation
 CREATE POLICY "Users can view own organization"
   ON organizations FOR SELECT
-  USING (id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+  USING (id = auth_user_org_id());
 
 -- Articles: användare ser artiklar för sin organisation + globala (org_id IS NULL)
 CREATE POLICY "Users can view org articles"
   ON articles FOR SELECT
-  USING (org_id IS NULL OR org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+  USING (org_id IS NULL OR org_id = auth_user_org_id());
 
--- Briefings: användare ser briefings för sin organisation
+-- Briefings: användare ser briefings för sin organisation + globala
 CREATE POLICY "Users can view org briefings"
   ON briefings FOR SELECT
-  USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
+  USING (org_id IS NULL OR org_id = auth_user_org_id());
 
 -- Notification queue: användare ser sina egna notifieringar
 CREATE POLICY "Users can view own notifications"

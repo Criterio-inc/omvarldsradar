@@ -39,9 +39,11 @@ export default function BriefingPage() {
   const [archive, setArchive] = useState<Briefing[]>([]);
   const [urgentArticles, setUrgentArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [b, a, u] = await Promise.all([
         fetchLatestBriefing(),
@@ -51,6 +53,8 @@ export default function BriefingPage() {
       setBriefing(b);
       setArchive(a);
       setUrgentArticles(u);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunde inte ladda briefing-data");
     } finally {
       setLoading(false);
     }

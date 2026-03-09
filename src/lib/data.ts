@@ -56,48 +56,49 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   const supabase = getSupabase();
   if (!supabase) return defaultStats;
 
-  try {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [articlesRes, weekRes, actionRes, sourcesRes] = await Promise.all([
-      supabase.from("articles").select("id", { count: "exact", head: true }),
-      supabase.from("articles").select("id", { count: "exact", head: true }).gte("fetched_at", weekAgo),
-      supabase.from("articles").select("id", { count: "exact", head: true }).eq("ai_action", "Agera nu"),
-      supabase.from("sources").select("id, feed_type, active"),
-    ]);
+  const [articlesRes, weekRes, actionRes, sourcesRes] = await Promise.all([
+    supabase.from("articles").select("id", { count: "exact", head: true }),
+    supabase.from("articles").select("id", { count: "exact", head: true }).gte("fetched_at", weekAgo),
+    supabase.from("articles").select("id", { count: "exact", head: true }).eq("ai_action", "Agera nu"),
+    supabase.from("sources").select("id, feed_type, active"),
+  ]);
 
-    const sources = sourcesRes.data ?? [];
-    return {
-      totalArticles: articlesRes.count ?? 0,
-      articlesThisWeek: weekRes.count ?? 0,
-      actionRequired: actionRes.count ?? 0,
-      totalSources: sources.length,
-      activeSources: sources.filter((s) => s.active).length,
-      rssReady: sources.filter((s) => s.feed_type === "rss").length,
-    };
-  } catch {
-    return defaultStats;
-  }
+  // Logga Supabase-fel men returnera vad vi kan
+  if (articlesRes.error) console.error("[data] articles query error:", articlesRes.error.message);
+  if (sourcesRes.error) console.error("[data] sources query error:", sourcesRes.error.message);
+
+  const sources = sourcesRes.data ?? [];
+  return {
+    totalArticles: articlesRes.count ?? 0,
+    articlesThisWeek: weekRes.count ?? 0,
+    actionRequired: actionRes.count ?? 0,
+    totalSources: sources.length,
+    activeSources: sources.filter((s) => s.active).length,
+    rssReady: sources.filter((s) => s.feed_type === "rss").length,
+  };
 }
 
 export async function fetchLatestArticles(limit = 10): Promise<Article[]> {
   const supabase = getSupabase();
   if (!supabase) return [];
 
-  try {
-    const { data } = await supabase
-      .from("articles")
-      .select("*, sources(name)")
-      .order("fetched_at", { ascending: false })
-      .limit(limit);
+  const { data, error } = await supabase
+    .from("articles")
+    .select("*, sources(name)")
+    .order("fetched_at", { ascending: false })
+    .limit(limit);
 
-    return (data ?? []).map((a) => ({
-      ...a,
-      source_name: (a.sources as { name: string } | null)?.name ?? "Okänd",
-    }));
-  } catch {
-    return [];
+  if (error) {
+    console.error("[data] fetchLatestArticles error:", error.message);
+    throw new Error(`Kunde inte hämta artiklar: ${error.message}`);
   }
+
+  return (data ?? []).map((a) => ({
+    ...a,
+    source_name: (a.sources as { name: string } | null)?.name ?? "Okänd",
+  }));
 }
 
 export async function fetchSources(): Promise<Source[]> {
@@ -335,9 +336,11 @@ export async function fetchTrendData(): Promise<{
 
     for (const a of articles) {
       const d = new Date(a.fetched_at);
-      // ISO week number
-      const startOfYear = new Date(d.getFullYear(), 0, 1);
-      const weekNum = Math.ceil(((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
+      // ISO 8601 veckonummer
+      const utcDate = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      utcDate.setUTCDate(utcDate.getUTCDate() + 4 - (utcDate.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
+      const weekNum = Math.ceil((((utcDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
       const weekLabel = `V${weekNum}`;
 
       weekMap.set(weekLabel, (weekMap.get(weekLabel) ?? 0) + 1);
@@ -355,7 +358,13 @@ export async function fetchTrendData(): Promise<{
 
     const weekly = Array.from(weekMap.entries())
       .map(([week, articles]) => ({ week, articles }))
-      .sort((a, b) => parseInt(a.week.slice(1)) - parseInt(b.week.slice(1)));
+      .sort((a, b) => {
+        const na = parseInt(a.week.slice(1));
+        const nb = parseInt(b.week.slice(1));
+        // Hantera årsskifte: om skillnad > 40 veckor, wrappa
+        if (Math.abs(na - nb) > 40) return na > nb ? -1 : 1;
+        return na - nb;
+      });
 
     const categories = Array.from(catMap.entries())
       .map(([name, value]) => ({

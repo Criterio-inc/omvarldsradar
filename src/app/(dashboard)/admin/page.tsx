@@ -59,7 +59,7 @@ export default function AdminPage() {
 
   // Invite form
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("user");
+  const [inviteRole, setInviteRole] = useState("viewer");
   const [inviting, setInviting] = useState(false);
   const [inviteResults, setInviteResults] = useState<InviteResult[]>([]);
 
@@ -220,6 +220,16 @@ export default function AdminPage() {
     setCsvEmails((prev) => prev.filter((e) => e !== email));
   }
 
+  // Auth gate: visa INGET förrän API-anropet svarar (förhindrar fladder)
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="mt-3 text-sm text-muted-foreground">Laddar administration...</p>
+      </div>
+    );
+  }
+
   if (error === "Unauthorized") {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -228,6 +238,19 @@ export default function AdminPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Bara administratörer har tillgång till den här sidan.
         </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <AlertTriangle className="mb-3 h-10 w-10 text-red-500" />
+        <h2 className="text-lg font-semibold">Något gick fel</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+        <Button variant="outline" size="sm" className="mt-4" onClick={loadUsers}>
+          Försök igen
+        </Button>
       </div>
     );
   }

@@ -38,14 +38,18 @@ export default function SearchPage() {
   const [results, setResults] = useState<Article[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function doSearch(query: string) {
     if (!query.trim()) return;
     setLoading(true);
     setHasSearched(true);
+    setError(null);
     try {
       const data = await searchArticles(query.trim());
       setResults(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sökningen misslyckades");
     } finally {
       setLoading(false);
     }

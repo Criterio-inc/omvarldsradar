@@ -56,7 +56,8 @@ export const frameworkColors: Record<string, string> = {
 
 export const roleColors: Record<string, string> = {
   admin: "bg-blue-100 text-blue-700 border-blue-200",
-  user: "bg-slate-100 text-slate-700 border-slate-200",
+  editor: "bg-purple-100 text-purple-700 border-purple-200",
+  viewer: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export const statusLabels: Record<string, string> = {

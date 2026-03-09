@@ -59,14 +59,18 @@ export default function TrendsPage() {
   const [categories, setCategories] = useState<TrendCategory[]>([]);
   const [impact, setImpact] = useState<TrendImpact[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchTrendData();
       setWeekly(data.weekly);
       setCategories(data.categories);
       setImpact(data.impact);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunde inte ladda trenddata");
     } finally {
       setLoading(false);
     }

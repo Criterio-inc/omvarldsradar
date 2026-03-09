@@ -44,19 +44,30 @@ import {
   tidshorisontColors,
 } from "@/lib/constants";
 
-function getWeekNumber(): number {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now.getTime() - start.getTime();
-  const oneWeek = 604800000;
-  return Math.ceil((diff / oneWeek + start.getDay() + 1) / 7);
+// ISO 8601 veckonummer (svensk standard)
+function getISOWeekNumber(date: Date = new Date()): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+// Tidsanpassad hälsning
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 10) return "God morgon";
+  if (hour >= 10 && hour < 17) return "Hej";
+  if (hour >= 17 && hour < 23) return "God kväll";
+  return "God natt";
 }
 
 export default function DashboardPage() {
-  const weekNumber = getWeekNumber();
+  const weekNumber = getISOWeekNumber();
+  const greeting = getGreeting();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -67,6 +78,8 @@ export default function DashboardPage() {
         ]);
         setStats(s);
         setArticles(a);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Kunde inte ladda data");
       } finally {
         setLoading(false);
       }
@@ -83,7 +96,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Greeting */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">God morgon!</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{greeting}!</h1>
         <p className="text-muted-foreground">
           Vecka {weekNumber} &mdash; Här är din omvärldsbevakning
         </p>

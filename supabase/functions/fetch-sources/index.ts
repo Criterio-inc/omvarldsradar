@@ -42,6 +42,7 @@ interface FetchResult {
   articles_found: number;
   articles_new: number;
   articles_skipped: number;
+  articles_classified?: number;
   error_message: string | null;
   duration_ms: number;
 }
@@ -51,10 +52,11 @@ const RATE_LIMIT_MS = 500; // 500ms mellan requests
 const FETCH_TIMEOUT_MS = 15000; // 15s timeout per källa
 const USER_AGENT = "OmvarldsRadar/1.0 (omvarldsradar.criteroconsulting.se)";
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const HAIKU_MODEL = "claude-haiku-4-20250414";
+const HAIKU_MODEL = "claude-3-5-haiku-20241022";
 const CLASSIFY_BATCH_SIZE = 5; // Klassificera 5 artiklar per API-anrop (kostnadsoptimering)
+const MAX_CLASSIFY_PER_RUN = 25; // Max artiklar att klassificera per körning (undvik timeout)
 
-// Giltiga kategorier (matchar databasens ai_category)
+// Giltiga värden (matchar databasens CHECK constraints exakt)
 const VALID_CATEGORIES = [
   "Styrning & Demokrati",
   "Digitalisering & Teknik",
@@ -66,6 +68,27 @@ const VALID_CATEGORIES = [
   "Arbetsgivare & Organisation",
   "Samhälle & Medborgare",
   "Innovation & Omställning",
+];
+
+const VALID_IMPACTS = [
+  "Direkt reglering",
+  "Indirekt påverkan",
+  "Möjlighet",
+  "Risk/hot",
+];
+
+const VALID_ACTIONS = [
+  "Agera nu",
+  "Planera",
+  "Bevaka",
+  "Inspireras",
+];
+
+const VALID_TIMEFRAMES = [
+  "Akut (0-3 mån)",
+  "Kort sikt (3-12 mån)",
+  "Medellång sikt (1-3 år)",
+  "Lång sikt (3+ år)",
 ];
 
 Deno.serve(async (req) => {
@@ -113,13 +136,24 @@ Deno.serve(async (req) => {
 
     // --- Steg 2-5: Bearbeta varje källa ---
     const results: FetchResult[] = [];
+    let totalClassified = 0; // Spåra antal klassificerade för timeout-skydd
 
     for (const source of sourcesToFetch) {
-      const result = await fetchSource(supabase, source);
+      const remainingBudget = MAX_CLASSIFY_PER_RUN - totalClassified;
+      const result = await fetchSource(supabase, source, remainingBudget);
       results.push(result);
+      totalClassified += result.articles_classified ?? 0;
 
       // Rate limiting
       await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS));
+    }
+
+    // --- Steg 6: Klassificera oklassificerade artiklar från tidigare körningar ---
+    if (totalClassified < MAX_CLASSIFY_PER_RUN) {
+      const backfillBudget = MAX_CLASSIFY_PER_RUN - totalClassified;
+      const backfilled = await classifyBacklog(supabase, backfillBudget);
+      totalClassified += backfilled;
+      console.log(`[OmvärldsRadar] Backfill: klassificerade ${backfilled} äldre artiklar`);
     }
 
     // --- Sammanfattning ---
@@ -132,6 +166,7 @@ Deno.serve(async (req) => {
       sources_processed: results.length,
       sources_total: sources?.length ?? 0,
       articles_new: totalNew,
+      articles_classified: totalClassified,
       errors: totalErrors,
       duration_ms: totalDuration,
       results,
@@ -160,13 +195,15 @@ Deno.serve(async (req) => {
 // --- Tool: Hämta och bearbeta en enskild källa ---
 async function fetchSource(
   supabase: ReturnType<typeof createClient>,
-  source: Source
+  source: Source,
+  classifyBudget: number = MAX_CLASSIFY_PER_RUN
 ): Promise<FetchResult> {
   const start = Date.now();
   const logEntry: Partial<FetchResult> = {
     source_id: source.id,
     source_name: source.name,
   };
+  let classified = 0;
 
   try {
     console.log(`[${source.name}] Hämtar ${source.feed_url}...`);
@@ -217,7 +254,7 @@ async function fetchSource(
     logEntry.articles_new = newArticles.length;
     logEntry.articles_skipped = articles.length - newArticles.length;
 
-    // Spara nya artiklar
+    // Spara nya artiklar (alltid — oavsett klassificeringsbudget)
     if (newArticles.length > 0) {
       const { data: inserted, error: insertError } = await supabase
         .from("articles")
@@ -228,9 +265,15 @@ async function fetchSource(
         throw new Error(`Insert failed: ${insertError.message}`);
       }
 
-      // AI-klassificering med Haiku (kör inline, ej bakgrund)
-      if (inserted && inserted.length > 0) {
-        await classifyArticles(supabase, inserted);
+      // AI-klassificering — begränsa till budget för att undvika timeout
+      if (inserted && inserted.length > 0 && classifyBudget > 0) {
+        const toClassify = inserted.slice(0, classifyBudget);
+        classified = await classifyArticles(supabase, toClassify);
+        if (inserted.length > classifyBudget) {
+          console.log(
+            `[${source.name}] Klassificerade ${classified}/${inserted.length} (budget: ${classifyBudget}). Resten tas vid nästa körning.`
+          );
+        }
       }
     }
 
@@ -257,7 +300,7 @@ async function fetchSource(
     });
 
     console.log(
-      `[${source.name}] ✓ ${newArticles.length} nya, ${logEntry.articles_skipped} skippade (${duration}ms)`
+      `[${source.name}] ✓ ${newArticles.length} nya, ${classified} klassificerade, ${logEntry.articles_skipped} skippade (${duration}ms)`
     );
 
     return {
@@ -267,6 +310,7 @@ async function fetchSource(
       articles_found: logEntry.articles_found ?? 0,
       articles_new: logEntry.articles_new ?? 0,
       articles_skipped: logEntry.articles_skipped ?? 0,
+      articles_classified: classified,
       error_message: null,
       duration_ms: duration,
     };
@@ -328,12 +372,14 @@ interface ClassificationResult {
 async function classifyArticles(
   supabase: ReturnType<typeof createClient>,
   articles: ArticleToClassify[]
-): Promise<void> {
+): Promise<number> {
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!anthropicKey) {
     console.warn("[AI] ANTHROPIC_API_KEY saknas — hoppar över klassificering");
-    return;
+    return 0;
   }
+
+  let totalClassified = 0;
 
   // Bearbeta i batchar
   for (let i = 0; i < articles.length; i += CLASSIFY_BATCH_SIZE) {
@@ -344,7 +390,7 @@ async function classifyArticles(
 
       // Uppdatera varje artikel med AI-resultat
       for (const result of results) {
-        await supabase
+        const { error: updateError } = await supabase
           .from("articles")
           .update({
             ai_category: result.ai_category,
@@ -355,6 +401,12 @@ async function classifyArticles(
             ai_summary: result.ai_summary,
           })
           .eq("id", result.id);
+
+        if (updateError) {
+          console.error(`[AI] Update failed for ${result.id}: ${updateError.message}`);
+        } else {
+          totalClassified++;
+        }
       }
 
       console.log(
@@ -370,6 +422,26 @@ async function classifyArticles(
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
+
+  return totalClassified;
+}
+
+// --- Backfill: Klassificera äldre oklassificerade artiklar ---
+async function classifyBacklog(
+  supabase: ReturnType<typeof createClient>,
+  budget: number
+): Promise<number> {
+  const { data: unclassified } = await supabase
+    .from("articles")
+    .select("id, title, summary")
+    .is("ai_category", null)
+    .order("fetched_at", { ascending: false })
+    .limit(budget);
+
+  if (!unclassified || unclassified.length === 0) return 0;
+
+  console.log(`[AI] Backfill: ${unclassified.length} oklassificerade artiklar`);
+  return await classifyArticles(supabase, unclassified);
 }
 
 async function classifyBatch(
@@ -390,9 +462,9 @@ Klassificera följande ${articles.length} artiklar. Svara med ENBART giltig JSON
 GILTIGA KATEGORIER (välj exakt en per artikel):
 ${VALID_CATEGORIES.map((c) => `- "${c}"`).join("\n")}
 
-GILTIGA PÅVERKAN-NIVÅER: "Direkt påverkan", "Indirekt påverkan", "Möjlighet", "Risk"
-GILTIGA ÅTGÄRDER: "Agera nu", "Planera", "Bevaka"
-GILTIGA TIDSHORISONTER: "0-6 månader", "6-24 månader", "2+ år"
+GILTIGA PÅVERKAN-NIVÅER: "Direkt reglering", "Indirekt påverkan", "Möjlighet", "Risk/hot"
+GILTIGA ÅTGÄRDER: "Agera nu", "Planera", "Bevaka", "Inspireras"
+GILTIGA TIDSHORISONTER: "Akut (0-3 mån)", "Kort sikt (3-12 mån)", "Medellång sikt (1-3 år)", "Lång sikt (3+ år)"
 
 Svara med denna JSON-struktur (INGEN annan text):
 [
@@ -448,9 +520,9 @@ ${articleList}`;
       .map((r) => ({
         id: r.id,
         ai_category: VALID_CATEGORIES.includes(r.ai_category) ? r.ai_category : "Styrning & Demokrati",
-        ai_impact: r.ai_impact || "Indirekt påverkan",
-        ai_action: r.ai_action || "Bevaka",
-        ai_timeframe: r.ai_timeframe || "6-24 månader",
+        ai_impact: VALID_IMPACTS.includes(r.ai_impact) ? r.ai_impact : "Indirekt påverkan",
+        ai_action: VALID_ACTIONS.includes(r.ai_action) ? r.ai_action : "Bevaka",
+        ai_timeframe: VALID_TIMEFRAMES.includes(r.ai_timeframe) ? r.ai_timeframe : "Kort sikt (3-12 mån)",
         ai_relevance: Math.min(100, Math.max(0, r.ai_relevance || 50)),
         ai_summary: r.ai_summary || "",
       }));

@@ -27,10 +27,12 @@ export default function FeedPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
 
   const loadArticles = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const { articles: data, count } = await fetchArticles({
         category: selectedCategory,
@@ -39,6 +41,8 @@ export default function FeedPage() {
       });
       setArticles(data);
       setTotalCount(count);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunde inte ladda artiklar");
     } finally {
       setLoading(false);
     }
