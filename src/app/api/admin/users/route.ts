@@ -76,7 +76,7 @@ export async function GET() {
     created_at: u.created_at,
     last_sign_in_at: u.last_sign_in_at,
     full_name: profileMap.get(u.id)?.full_name || "",
-    role: profileMap.get(u.id)?.role || "user",
+    role: profileMap.get(u.id)?.role || "viewer",
   }));
 
   return NextResponse.json({ users: result });
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     );
 
   const body = await request.json();
-  const { emails, role = "user" } = body as {
+  const { emails, role = "viewer" } = body as {
     emails: string[];
     role?: string;
   };
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       results.push({ email: trimmed, success: false, error: error.message });
     } else {
       // Set role in profile if not default
-      if (data.user && role !== "user") {
+      if (data.user && role !== "viewer") {
         await client.from("profiles").update({ role }).eq("id", data.user.id);
       }
       results.push({ email: trimmed, success: true });

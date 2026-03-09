@@ -269,7 +269,8 @@ export default function AdminPage() {
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
                 >
-                  <option value="user">Användare</option>
+                  <option value="viewer">Användare</option>
+                  <option value="editor">Redaktör</option>
                   <option value="admin">Admin</option>
                 </select>
                 <Button
@@ -438,7 +439,8 @@ export default function AdminPage() {
                           handleRoleChange(user.id, e.target.value)
                         }
                       >
-                        <option value="user">Användare</option>
+                        <option value="viewer">Användare</option>
+                        <option value="editor">Redaktör</option>
                         <option value="admin">Admin</option>
                       </select>
                       <Badge
