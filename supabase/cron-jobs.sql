@@ -2,6 +2,13 @@
 -- OmvärldsRadar — pg_cron: Schemalagda agentiska flöden
 -- Kör detta i Supabase SQL Editor EFTER att Edge Functions deployats
 --
+-- INSTRUKTION:
+--   1. Sök-och-ersätt DITT_PROJEKT_URLmed din Project URL
+--      (t.ex. https://abcdefgh.supabase.co)
+--   2. Sök-och-ersätt DIN_SERVICE_ROLE_KEY med din service_role key
+--      (börjar med eyJ...)
+--   3. Kör hela scriptet i SQL Editor
+--
 -- Tre pipelines:
 --   1. Datainsamling  — var 6:e timme
 --   2. Briefing       — söndag kväll 20:00
@@ -21,11 +28,8 @@ SELECT cron.schedule(
   '0 */6 * * *',  -- 00:00, 06:00, 12:00, 18:00
   $$
     SELECT net.http_post(
-      url := current_setting('app.settings.supabase_url') || '/functions/v1/fetch-sources',
-      headers := jsonb_build_object(
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key'),
-        'Content-Type', 'application/json'
-      ),
+      url := 'DITT_PROJEKT_URL/functions/v1/fetch-sources',
+      headers := '{"Authorization": "Bearer DIN_SERVICE_ROLE_KEY", "Content-Type": "application/json"}'::jsonb,
       body := '{}'::jsonb
     );
   $$
@@ -40,11 +44,8 @@ SELECT cron.schedule(
   '0 20 * * 0',  -- Söndag 20:00
   $$
     SELECT net.http_post(
-      url := current_setting('app.settings.supabase_url') || '/functions/v1/generate-briefing',
-      headers := jsonb_build_object(
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key'),
-        'Content-Type', 'application/json'
-      ),
+      url := 'DITT_PROJEKT_URL/functions/v1/generate-briefing',
+      headers := '{"Authorization": "Bearer DIN_SERVICE_ROLE_KEY", "Content-Type": "application/json"}'::jsonb,
       body := '{}'::jsonb
     );
   $$
@@ -59,11 +60,8 @@ SELECT cron.schedule(
   '0 7 * * *',  -- Varje dag 07:00
   $$
     SELECT net.http_post(
-      url := current_setting('app.settings.supabase_url') || '/functions/v1/send-notifications',
-      headers := jsonb_build_object(
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key'),
-        'Content-Type', 'application/json'
-      ),
+      url := 'DITT_PROJEKT_URL/functions/v1/send-notifications',
+      headers := '{"Authorization": "Bearer DIN_SERVICE_ROLE_KEY", "Content-Type": "application/json"}'::jsonb,
       body := '{}'::jsonb
     );
   $$
@@ -82,6 +80,6 @@ SELECT cron.schedule(
 );
 
 -- ============================================================
--- Visa aktiva cron-jobb
+-- Visa aktiva cron-jobb (kör detta efteråt för att verifiera)
 -- ============================================================
 -- SELECT * FROM cron.job;

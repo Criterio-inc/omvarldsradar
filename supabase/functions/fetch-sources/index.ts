@@ -52,9 +52,9 @@ const RATE_LIMIT_MS = 500; // 500ms mellan requests
 const FETCH_TIMEOUT_MS = 15000; // 15s timeout per källa
 const USER_AGENT = "OmvarldsRadar/1.0 (omvarldsradar.criteroconsulting.se)";
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const HAIKU_MODEL = "claude-3-5-haiku-20241022";
+const HAIKU_MODEL = Deno.env.get("CLAUDE_MODEL") || "claude-haiku-4-5";
 const CLASSIFY_BATCH_SIZE = 5; // Klassificera 5 artiklar per API-anrop (kostnadsoptimering)
-const MAX_CLASSIFY_PER_RUN = 25; // Max artiklar att klassificera per körning (undvik timeout)
+const MAX_CLASSIFY_PER_RUN = 50; // Max artiklar att klassificera per körning (60s timeout)
 
 // Giltiga värden (matchar databasens CHECK constraints exakt)
 const VALID_CATEGORIES = [
