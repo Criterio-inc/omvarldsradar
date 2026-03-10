@@ -14,6 +14,23 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Översätt tekniska auth-fel till svenska användarmeddelanden
+function translateAuthError(rawError: string): string {
+  if (rawError.includes("PKCE") || rawError.includes("code_verifier")) {
+    return "Inloggningslänken kunde inte verifieras. Det kan bero på att du öppnade länken i en annan webbläsare. Begär en ny länk nedan.";
+  }
+  if (rawError.includes("code_exchange")) {
+    return "Inloggningslänken har gått ut eller redan använts. Begär en ny länk nedan.";
+  }
+  if (rawError.includes("verify_otp")) {
+    return "Inloggningslänken kunde inte verifieras. Den kan ha gått ut. Begär en ny länk nedan.";
+  }
+  if (rawError.includes("rate_limit") || rawError.includes("too many")) {
+    return "Du har begärt för många inloggningar. Vänta en stund och försök igen.";
+  }
+  return rawError;
+}
+
 export default function LoginPage() {
   return (
     <Suspense>
@@ -30,11 +47,11 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Show auth callback errors
+  // Show auth callback errors (translated to Swedish)
   useEffect(() => {
     const callbackError = searchParams.get("error");
     if (callbackError) {
-      setError(`Auth callback: ${callbackError}`);
+      setError(translateAuthError(callbackError));
     }
   }, [searchParams]);
 
@@ -63,7 +80,7 @@ function LoginForm() {
 
     setIsLoading(false);
     if (error) {
-      setError(error.message);
+      setError(translateAuthError(error.message));
     } else {
       setIsSent(true);
     }
@@ -72,22 +89,24 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex items-center gap-2.5">
-            <Image
-              src="/omvarldsradar-logo.png"
-              alt="OmvärldsRadar"
-              width={44}
-              height={44}
-              className="rounded-xl"
-            />
+        {/* Logo + titel */}
+        <div className="mb-8 flex flex-col items-center gap-4">
+          <Image
+            src="/omvarldsradar-logo.png"
+            alt="OmvärldsRadar"
+            width={80}
+            height={80}
+            className="rounded-2xl shadow-md"
+            priority
+          />
+          <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               OmvärldsRadar
             </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              AI-driven omvärldsbevakning för offentlig sektor
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            AI-driven omvärldsbevakning för offentlig sektor
-          </p>
         </div>
 
         <Card>
@@ -123,6 +142,9 @@ function LoginForm() {
                     Kontrollera din inkorg på{" "}
                     <span className="font-medium text-foreground">{email}</span>
                   </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Klicka på länken i samma webbläsare som du begärde den.
+                  </p>
                 </div>
                 <Button
                   variant="ghost"
@@ -139,7 +161,7 @@ function LoginForm() {
             ) : (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 {error && (
-                  <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                  <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200">
                     {error}
                   </div>
                 )}
@@ -204,7 +226,7 @@ function LoginForm() {
               className="w-full"
               onClick={() => router.push("/")}
             >
-              Demo-läge → Gå till dashboard
+              Demo-läge &rarr; Gå till dashboard
             </Button>
           </div>
         )}
