@@ -53,9 +53,10 @@ export async function GET(request: Request) {
       authError = `verify_otp: ${error.message}`;
     }
   }
-  // No auth params at all
+  // No auth params at all — just redirect to login silently
   else {
-    authError = `no_params: code=${code}, token_hash=${token_hash}, type=${type}`;
+    const loginUrl = new URL("/login", origin);
+    return NextResponse.redirect(loginUrl.toString());
   }
 
   if (!authError) {
