@@ -116,6 +116,7 @@ export default function SettingsPage() {
   // --- Save state ---
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Load organization data
   useEffect(() => {
@@ -223,6 +224,7 @@ export default function SettingsPage() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError(null);
     try {
       // Spara notifieringar + fokusområden + action levels
       const prefsRes = await fetch("/api/notifications/preferences", {
@@ -241,23 +243,36 @@ export default function SettingsPage() {
         }),
       });
 
-      // Spara organisationsdata
-      const orgRes = await fetch("/api/settings/org", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: orgName,
-          type: orgType,
-          size: orgSize,
-        }),
-      });
-
-      if (prefsRes.ok && orgRes.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+      if (!prefsRes.ok) {
+        const errData = await prefsRes.json().catch(() => ({}));
+        console.error("[Settings] Prefs save failed:", errData);
+        setSaveError(`Kunde inte spara inställningar: ${errData.error || prefsRes.statusText}`);
+        return;
       }
-    } catch {
-      // silently fail
+
+      // Spara organisationsdata (kan misslyckas om ingen org kopplad — det är OK)
+      try {
+        const orgRes = await fetch("/api/settings/org", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: orgName,
+            type: orgType,
+            size: orgSize,
+          }),
+        });
+        if (!orgRes.ok) {
+          console.warn("[Settings] Org save skipped (no org linked)");
+        }
+      } catch {
+        // Org-save kan misslyckas om ingen org kopplad — stör inte prefs-save
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("[Settings] Save error:", err);
+      setSaveError("Ett oväntat fel uppstod vid sparning");
     } finally {
       setSaving(false);
     }
@@ -451,6 +466,11 @@ export default function SettingsPage() {
             {saved && (
               <span className="text-sm text-green-600 font-medium">
                 Ändringarna har sparats
+              </span>
+            )}
+            {saveError && (
+              <span className="text-sm text-red-600 font-medium">
+                {saveError}
               </span>
             )}
           </div>
@@ -671,6 +691,11 @@ export default function SettingsPage() {
             {saved && (
               <span className="text-sm text-green-600 font-medium">
                 Inställningarna har sparats
+              </span>
+            )}
+            {saveError && (
+              <span className="text-sm text-red-600 font-medium">
+                {saveError}
               </span>
             )}
           </div>

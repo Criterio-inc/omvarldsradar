@@ -23,6 +23,14 @@ export const metadata: Metadata = {
   title: "OmvärldsRadar - AI-driven omvärldsbevakning för svensk offentlig sektor",
   description:
     "AI-driven omvärldsbevakning och analys för svenska kommuner och regioner. Bevaka EU-regelverk, nationella reformer och globala trender.",
+  icons: {
+    icon: [
+      { url: "/icon.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "OmvärldsRadar",
     description: "AI-driven omvärldsbevakning för svensk offentlig sektor",

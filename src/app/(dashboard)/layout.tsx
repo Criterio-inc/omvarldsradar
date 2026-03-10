@@ -181,25 +181,43 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function loadUser() {
-      const supabase = createClient();
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return;
+      try {
+        const supabase = createClient();
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, role, org_id, organizations(name)")
-        .eq("id", authUser.id)
-        .single();
+        // Hämta profil separat från org för att undvika JOIN-problem med RLS
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("full_name, role, org_id")
+          .eq("id", authUser.id)
+          .single();
 
-      const name = profile?.full_name || authUser.email?.split("@")[0] || "";
-      const initials = name
-        ? name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
-        : (authUser.email || "").slice(0, 2).toUpperCase();
-      const orgs = profile?.organizations as unknown as { name: string }[] | { name: string } | null;
-      const org = Array.isArray(orgs) ? orgs[0]?.name || "" : orgs?.name || "";
-      const role = profile?.role || "viewer";
+        if (profileError) {
+          console.error("[Layout] Profile load error:", profileError.message);
+        }
 
-      setUser({ name, initials, org, role });
+        const role = profile?.role || "viewer";
+        const name = profile?.full_name || authUser.email?.split("@")[0] || "";
+        const initials = name
+          ? name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
+          : (authUser.email || "").slice(0, 2).toUpperCase();
+
+        // Hämta org-namn separat
+        let org = "";
+        if (profile?.org_id) {
+          const { data: orgData } = await supabase
+            .from("organizations")
+            .select("name")
+            .eq("id", profile.org_id)
+            .single();
+          org = orgData?.name || "";
+        }
+
+        setUser({ name, initials, org, role });
+      } catch (err) {
+        console.error("[Layout] User load error:", err);
+      }
     }
     loadUser();
   }, []);

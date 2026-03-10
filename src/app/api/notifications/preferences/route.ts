@@ -70,7 +70,9 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const { error } = await supabase
+  console.log("[Prefs PATCH] User:", user.id, "Saving:", JSON.stringify(preferences));
+
+  const { error, count } = await supabase
     .from("profiles")
     .update({
       notification_preferences: preferences,
@@ -78,8 +80,11 @@ export async function PATCH(request: Request) {
     })
     .eq("id", user.id);
 
-  if (error)
+  if (error) {
+    console.error("[Prefs PATCH] Error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
+  console.log("[Prefs PATCH] Success, rows affected:", count);
   return NextResponse.json({ success: true });
 }
