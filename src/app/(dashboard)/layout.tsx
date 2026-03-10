@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
@@ -15,10 +17,11 @@ import {
   Menu,
   LogOut,
   User,
-  Radar,
   ChevronDown,
   Info,
   ShieldCheck,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -68,16 +71,20 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2.5 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1e6b8a]">
-          <Radar className="h-5 w-5 text-white" />
-        </div>
+        <Image
+          src="/omvarldsradar-logo.png"
+          alt="OmvärldsRadar"
+          width={36}
+          height={36}
+          className="rounded-lg"
+        />
         <div>
-          <h1 className="text-sm font-bold text-white">OmvärldsRadar</h1>
-          <p className="text-[11px] text-slate-400">Omvärldsbevakning</p>
+          <h1 className="text-sm font-bold text-sidebar-primary-foreground">OmvärldsRadar</h1>
+          <p className="text-[11px] text-sidebar-foreground/60">Omvärldsbevakning</p>
         </div>
       </div>
 
-      <Separator className="bg-slate-700/50" />
+      <Separator className="bg-sidebar-border" />
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
@@ -94,8 +101,8 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-[#1e6b8a] text-white"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -104,7 +111,7 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
             );
           })}
 
-          <Separator className="my-3 bg-slate-700/50" />
+          <Separator className="my-3 bg-sidebar-border" />
 
           {bottomNavItems
             .filter((item) => item.href !== "/admin" || user.role === "admin")
@@ -117,8 +124,8 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-[#1e6b8a] text-white"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -130,18 +137,18 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
       </ScrollArea>
 
       {/* User info */}
-      <div className="border-t border-slate-700/50 p-4">
+      <div className="border-t border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           <Avatar size="sm">
-            <AvatarFallback className="bg-[#1e6b8a] text-xs text-white">
+            <AvatarFallback className="bg-sidebar-primary text-xs text-sidebar-primary-foreground">
               {user.initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium text-white">
+            <p className="truncate text-sm font-medium text-sidebar-foreground">
               {user.name}
             </p>
-            <p className="truncate text-xs text-slate-400">
+            <p className="truncate text-xs text-sidebar-foreground/60">
               {user.org}
             </p>
           </div>
@@ -158,6 +165,8 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<UserProfile>({
     name: "",
@@ -165,6 +174,10 @@ export default function DashboardLayout({
     org: "",
     role: "",
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function loadUser() {
@@ -200,14 +213,14 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar */}
-      <aside className="hidden w-[260px] shrink-0 bg-slate-900 lg:block">
+      <aside className="hidden w-[260px] shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
         <SidebarContent pathname={pathname} user={user} />
       </aside>
 
       {/* Main area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-white px-4 lg:px-6">
+        <header className="flex h-16 shrink-0 items-center gap-4 border-b border-border bg-card px-4 lg:px-6">
           {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -218,7 +231,7 @@ export default function DashboardLayout({
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="w-[260px] bg-slate-900 p-0 text-white"
+              className="w-[260px] border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
               showCloseButton={false}
             >
               <SheetHeader className="sr-only">
@@ -253,6 +266,23 @@ export default function DashboardLayout({
           </form>
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Dark mode toggle */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title={theme === "dark" ? "Byt till ljust tema" : "Byt till mörkt tema"}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+                <span className="sr-only">Byt tema</span>
+              </Button>
+            )}
+
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
@@ -267,7 +297,7 @@ export default function DashboardLayout({
                   className="gap-2 px-2"
                 >
                   <Avatar size="sm">
-                    <AvatarFallback className="bg-[#1e6b8a] text-xs text-white">
+                    <AvatarFallback className="bg-primary text-xs text-primary-foreground">
                       {user.initials || ".."}
                     </AvatarFallback>
                   </Avatar>
@@ -303,7 +333,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-[var(--background)]">
+        <main className="flex-1 overflow-y-auto bg-background">
           <div className="mx-auto max-w-7xl p-4 lg:p-6">{children}</div>
         </main>
       </div>

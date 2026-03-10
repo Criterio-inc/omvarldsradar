@@ -2,7 +2,21 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Building2, Users, Bell, Save, Loader2, ShieldCheck } from "lucide-react";
+import {
+  Building2,
+  Users,
+  Bell,
+  Save,
+  Loader2,
+  ShieldCheck,
+  AlertTriangle,
+  Eye,
+  Calendar,
+  Lightbulb,
+  Mail,
+  Clock,
+  Zap,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -19,16 +33,47 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { roleColors } from "@/lib/constants";
 
 const focusAreas = [
-  { id: "styrning-demokrati", label: "Styrning & Demokrati", checked: true },
-  { id: "digitalisering-teknik", label: "Digitalisering & Teknik", checked: true },
-  { id: "valfard-omsorg", label: "Välfärd & Omsorg", checked: true },
-  { id: "utbildning-kompetens", label: "Utbildning & Kompetens", checked: false },
-  { id: "klimat-miljo-samhallsbyggnad", label: "Klimat, Miljö & Samhällsbyggnad", checked: true },
-  { id: "trygghet-beredskap", label: "Trygghet & Beredskap", checked: true },
-  { id: "ekonomi-resurser", label: "Ekonomi & Resurser", checked: false },
-  { id: "arbetsgivare-organisation", label: "Arbetsgivare & Organisation", checked: false },
-  { id: "samhalle-medborgare", label: "Samhälle & Medborgare", checked: false },
-  { id: "innovation-omstallning", label: "Innovation & Omställning", checked: true },
+  { id: "styrning-demokrati", label: "Styrning & Demokrati" },
+  { id: "digitalisering-teknik", label: "Digitalisering & Teknik" },
+  { id: "valfard-omsorg", label: "Välfärd & Omsorg" },
+  { id: "utbildning-kompetens", label: "Utbildning & Kompetens" },
+  { id: "klimat-miljo-samhallsbyggnad", label: "Klimat, Miljö & Samhällsbyggnad" },
+  { id: "trygghet-beredskap", label: "Trygghet & Beredskap" },
+  { id: "ekonomi-resurser", label: "Ekonomi & Resurser" },
+  { id: "arbetsgivare-organisation", label: "Arbetsgivare & Organisation" },
+  { id: "samhalle-medborgare", label: "Samhälle & Medborgare" },
+  { id: "innovation-omstallning", label: "Innovation & Omställning" },
+];
+
+const actionLevelOptions = [
+  {
+    id: "Agera nu",
+    label: "Agera nu",
+    icon: AlertTriangle,
+    color: "text-red-600",
+    description: "Kritiska förändringar som kräver omedelbar uppmärksamhet — t.ex. nya EU-regler med kort implementeringstid",
+  },
+  {
+    id: "Planera",
+    label: "Planera",
+    icon: Calendar,
+    color: "text-amber-600",
+    description: "Kommande förändringar som behöver planering — t.ex. lagändringar som träder i kraft inom 6-12 månader",
+  },
+  {
+    id: "Bevaka",
+    label: "Bevaka",
+    icon: Eye,
+    color: "text-blue-600",
+    description: "Utvecklingar att följa och bevaka löpande — t.ex. pågående utredningar eller trender",
+  },
+  {
+    id: "Inspireras",
+    label: "Inspireras",
+    icon: Lightbulb,
+    color: "text-green-600",
+    description: "Goda exempel och innovation — t.ex. framgångsrika kommunala projekt eller internationella förebilder",
+  },
 ];
 
 interface TeamMember {
@@ -46,12 +91,101 @@ function getInitials(name: string, email: string): string {
 }
 
 export default function SettingsPage() {
+  // --- Organisation state ---
   const [orgName, setOrgName] = useState("");
   const [orgType, setOrgType] = useState("kommun");
   const [orgSize, setOrgSize] = useState("medel");
+  const [orgLoading, setOrgLoading] = useState(true);
+
+  // --- Team state ---
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [teamLoading, setTeamLoading] = useState(true);
 
+  // --- Focus areas state ---
+  const [areas, setAreas] = useState(
+    focusAreas.map((a) => ({ ...a, checked: false }))
+  );
+
+  // --- Notification state ---
+  const [weeklyBriefing, setWeeklyBriefing] = useState(true);
+  const [acuteAlerts, setAcuteAlerts] = useState(true);
+  const [trendDigest, setTrendDigest] = useState(false);
+  const [actionLevels, setActionLevels] = useState<string[]>(["Agera nu", "Bevaka"]);
+  const [prefsLoading, setPrefsLoading] = useState(true);
+
+  // --- Save state ---
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load organization data
+  useEffect(() => {
+    async function loadOrg() {
+      try {
+        const res = await fetch("/api/settings/org");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.org) {
+            setOrgName(data.org.name || "");
+            setOrgType(data.org.type || "kommun");
+            setOrgSize(data.org.size || "medel");
+          }
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setOrgLoading(false);
+      }
+    }
+    loadOrg();
+  }, []);
+
+  // Load notification preferences + focus areas
+  useEffect(() => {
+    async function loadPrefs() {
+      try {
+        const res = await fetch("/api/notifications/preferences");
+        if (res.ok) {
+          const data = await res.json();
+          const prefs = data.preferences;
+          if (prefs) {
+            setWeeklyBriefing(prefs.weekly_briefing ?? true);
+            setAcuteAlerts(prefs.acute_alerts ?? true);
+            setTrendDigest(prefs.trend_digest ?? false);
+
+            // Ladda fokusområden från DB
+            const savedCategories: string[] = prefs.categories ?? [];
+            if (savedCategories.length > 0) {
+              setAreas(
+                focusAreas.map((a) => ({
+                  ...a,
+                  checked: savedCategories.includes(a.label),
+                }))
+              );
+            } else {
+              // Default: alla utom de 4 sista
+              setAreas(
+                focusAreas.map((a, i) => ({
+                  ...a,
+                  checked: i < 3 || i === 4 || i === 5 || i === 9,
+                }))
+              );
+            }
+
+            // Ladda action levels
+            const savedLevels: string[] = prefs.action_levels ?? ["Agera nu", "Bevaka"];
+            setActionLevels(savedLevels);
+          }
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setPrefsLoading(false);
+      }
+    }
+    loadPrefs();
+  }, []);
+
+  // Load team
   const loadTeam = useCallback(async () => {
     setTeamLoading(true);
     try {
@@ -70,36 +204,6 @@ export default function SettingsPage() {
   useEffect(() => {
     loadTeam();
   }, [loadTeam]);
-  const [areas, setAreas] = useState(focusAreas);
-  const [weeklyBriefing, setWeeklyBriefing] = useState(true);
-  const [acuteAlerts, setAcuteAlerts] = useState(true);
-  const [trendDigest, setTrendDigest] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [prefsLoading, setPrefsLoading] = useState(true);
-
-  // Load notification preferences
-  useEffect(() => {
-    async function loadPrefs() {
-      try {
-        const res = await fetch("/api/notifications/preferences");
-        if (res.ok) {
-          const data = await res.json();
-          const prefs = data.preferences;
-          if (prefs) {
-            setWeeklyBriefing(prefs.weekly_briefing ?? true);
-            setAcuteAlerts(prefs.acute_alerts ?? true);
-            setTrendDigest(prefs.trend_digest ?? false);
-          }
-        }
-      } catch {
-        // silently fail
-      } finally {
-        setPrefsLoading(false);
-      }
-    }
-    loadPrefs();
-  }, []);
 
   function toggleArea(id: string) {
     setAreas((prev) =>
@@ -109,10 +213,19 @@ export default function SettingsPage() {
     );
   }
 
+  function toggleActionLevel(levelId: string) {
+    setActionLevels((prev) =>
+      prev.includes(levelId)
+        ? prev.filter((l) => l !== levelId)
+        : [...prev, levelId]
+    );
+  }
+
   async function handleSave() {
     setSaving(true);
     try {
-      const res = await fetch("/api/notifications/preferences", {
+      // Spara notifieringar + fokusområden + action levels
+      const prefsRes = await fetch("/api/notifications/preferences", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -123,12 +236,25 @@ export default function SettingsPage() {
             acute_alerts: acuteAlerts,
             trend_digest: trendDigest,
             categories: areas.filter((a) => a.checked).map((a) => a.label),
+            action_levels: actionLevels,
           },
         }),
       });
-      if (res.ok) {
+
+      // Spara organisationsdata
+      const orgRes = await fetch("/api/settings/org", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: orgName,
+          type: orgType,
+          size: orgSize,
+        }),
+      });
+
+      if (prefsRes.ok && orgRes.ok) {
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        setTimeout(() => setSaved(false), 3000);
       }
     } catch {
       // silently fail
@@ -142,7 +268,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Inställningar</h1>
         <p className="text-muted-foreground">
-          Hantera din organisation, team och notifieringar
+          Hantera din organisation, bevakningsprofil och notifieringar
         </p>
       </div>
 
@@ -172,47 +298,56 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Organisationsnamn
-                  </label>
-                  <Input
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                  />
+              {orgLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">
-                    Organisationstyp
-                  </label>
-                  <select
-                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
-                    value={orgType}
-                    onChange={(e) => setOrgType(e.target.value)}
-                  >
-                    <option value="kommun">Kommun</option>
-                    <option value="region">Region</option>
-                    <option value="myndighet">Myndighet</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">
-                  Storlek
-                </label>
-                <select
-                  className="h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
-                  value={orgSize}
-                  onChange={(e) => setOrgSize(e.target.value)}
-                >
-                  <option value="liten">Liten (under 15 000 invånare)</option>
-                  <option value="medel">
-                    Medel (15 000 - 50 000 invånare)
-                  </option>
-                  <option value="stor">Stor (över 50 000 invånare)</option>
-                </select>
-              </div>
+              ) : (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium">
+                        Organisationsnamn
+                      </label>
+                      <Input
+                        value={orgName}
+                        onChange={(e) => setOrgName(e.target.value)}
+                        placeholder="T.ex. Sundsvalls kommun"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium">
+                        Organisationstyp
+                      </label>
+                      <select
+                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
+                        value={orgType}
+                        onChange={(e) => setOrgType(e.target.value)}
+                      >
+                        <option value="kommun">Kommun</option>
+                        <option value="region">Region</option>
+                        <option value="myndighet">Myndighet</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium">
+                      Storlek
+                    </label>
+                    <select
+                      className="h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none"
+                      value={orgSize}
+                      onChange={(e) => setOrgSize(e.target.value)}
+                    >
+                      <option value="liten">Liten (under 15 000 invånare)</option>
+                      <option value="medel">
+                        Medel (15 000 - 50 000 invånare)
+                      </option>
+                      <option value="stor">Stor (över 50 000 invånare)</option>
+                    </select>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -221,26 +356,82 @@ export default function SettingsPage() {
               <CardTitle className="text-base">Fokusområden</CardTitle>
               <CardDescription>
                 Välj vilka ämnesområden som är mest relevanta för din
-                organisation. Bevakningsresultaten anpassas efter dina val.
+                organisation. Bevakningsresultaten och dina notifieringar anpassas efter dina val.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {areas.map((area) => (
-                  <label
-                    key={area.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={area.checked}
-                      onChange={() => toggleArea(area.id)}
-                      className="h-5 w-5 rounded border-gray-300 text-[var(--brand)] focus:ring-[var(--brand)] accent-[var(--brand)]"
-                    />
-                    <span className="text-sm font-medium">{area.label}</span>
-                  </label>
-                ))}
-              </div>
+              {prefsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {areas.map((area) => (
+                    <label
+                      key={area.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={area.checked}
+                        onChange={() => toggleArea(area.id)}
+                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+                      />
+                      <span className="text-sm font-medium">{area.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Åtgärdsnivåer</CardTitle>
+              <CardDescription>
+                Välj vilka typer av åtgärder du vill se och bli notifierad om.
+                Artiklarna i ditt flöde prioriteras efter dina val.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {prefsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {actionLevelOptions.map((level) => {
+                    const Icon = level.icon;
+                    const isSelected = actionLevels.includes(level.id);
+                    return (
+                      <label
+                        key={level.id}
+                        className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                          isSelected
+                            ? "border-primary/50 bg-primary/5"
+                            : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleActionLevel(level.id)}
+                          className="mt-0.5 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-4 w-4 ${level.color}`} />
+                            <span className="text-sm font-medium">{level.label}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                            {level.description}
+                          </p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -248,7 +439,7 @@ export default function SettingsPage() {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {saving ? (
                 <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -289,7 +480,7 @@ export default function SettingsPage() {
                     <div key={member.id}>
                       <div className="flex items-center gap-4">
                         <Avatar>
-                          <AvatarFallback className="bg-[var(--brand)] text-xs text-white">
+                          <AvatarFallback className="bg-primary text-xs text-primary-foreground">
                             {getInitials(member.full_name, member.email)}
                           </AvatarFallback>
                         </Avatar>
@@ -338,6 +529,46 @@ export default function SettingsPage() {
 
         {/* Notifieringar */}
         <TabsContent value="notifieringar" className="mt-6 space-y-6">
+          {/* Förklaring */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="flex items-start gap-3 pt-5">
+                <Mail className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Veckobriefing</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    AI-sammanfattning av veckans viktigaste omvärldsförändringar.
+                    Skickas varje måndag morgon.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20">
+              <CardContent className="flex items-start gap-3 pt-5">
+                <Zap className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Akuta larm</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Omedelbar e-post när artiklar med &ldquo;Agera nu&rdquo; publiceras
+                    inom dina fokusområden.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20">
+              <CardContent className="flex items-start gap-3 pt-5">
+                <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Trenddigest</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Månatlig sammanfattning av trender och mönster i dina
+                    bevakningsområden. Kommande funktion.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
@@ -354,71 +585,71 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <>
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="font-medium">Veckobriefing</p>
-                  <p className="text-sm text-muted-foreground">
-                    En sammanfattning av veckans viktigaste omvärldsförändringar
-                    varje måndag morgon
-                  </p>
-                </div>
-                <button
-                  onClick={() => setWeeklyBriefing(!weeklyBriefing)}
-                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-                    weeklyBriefing ? "bg-[var(--brand)]" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                      weeklyBriefing ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <p className="font-medium">Veckobriefing</p>
+                      <p className="text-sm text-muted-foreground">
+                        AI-sammanfattning varje måndag morgon
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setWeeklyBriefing(!weeklyBriefing)}
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                        weeklyBriefing ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          weeklyBriefing ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="font-medium">Akuta varningar</p>
-                  <p className="text-sm text-muted-foreground">
-                    Omedelbar notifiering vid kritiska förändringar som påverkar
-                    din kommun direkt
-                  </p>
-                </div>
-                <button
-                  onClick={() => setAcuteAlerts(!acuteAlerts)}
-                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-                    acuteAlerts ? "bg-[var(--brand)]" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                      acuteAlerts ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <p className="font-medium">Akuta varningar</p>
+                      <p className="text-sm text-muted-foreground">
+                        Omedelbar e-post vid &ldquo;Agera nu&rdquo;-artiklar i dina fokusområden
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setAcuteAlerts(!acuteAlerts)}
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                        acuteAlerts ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          acuteAlerts ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="font-medium">Trendsammanfattning</p>
-                  <p className="text-sm text-muted-foreground">
-                    En månadsvis översikt över trender och utvecklingar i dina
-                    bevakningsområden
-                  </p>
-                </div>
-                <button
-                  onClick={() => setTrendDigest(!trendDigest)}
-                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-                    trendDigest ? "bg-[var(--brand)]" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                      trendDigest ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">Trendsammanfattning</p>
+                        <Badge variant="outline" className="text-xs">Kommande</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Månadsvis översikt av trender (aktiveras snart)
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setTrendDigest(!trendDigest)}
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                        trendDigest ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          trendDigest ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </>
               )}
             </CardContent>
@@ -428,7 +659,7 @@ export default function SettingsPage() {
             <Button
               onClick={handleSave}
               disabled={saving || prefsLoading}
-              className="bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {saving ? (
                 <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />

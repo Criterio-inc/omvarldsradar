@@ -28,8 +28,8 @@ SELECT cron.schedule(
   '0 */6 * * *',  -- 00:00, 06:00, 12:00, 18:00
   $$
     SELECT net.http_post(
-      url := 'DITT_PROJEKT_URL/functions/v1/fetch-sources',
-      headers := '{"Authorization": "Bearer DIN_SERVICE_ROLE_KEY", "Content-Type": "application/json"}'::jsonb,
+      url := 'https://blyroacvazagxgfbixlb.supabase.co/functions/v1/fetch-sources',
+      headers := '{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJseXJvYWN2YXphZ3hnZmJpeGxiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA0NDI4MiwiZXhwIjoyMDg4NjIwMjgyfQ.c_W4f_XIdOC2lrgXqJSf_fxspmez3pWnRropWiFrDos", "Content-Type": "application/json"}'::jsonb,
       body := '{}'::jsonb
     );
   $$
@@ -44,8 +44,8 @@ SELECT cron.schedule(
   '0 20 * * 0',  -- Söndag 20:00
   $$
     SELECT net.http_post(
-      url := 'DITT_PROJEKT_URL/functions/v1/generate-briefing',
-      headers := '{"Authorization": "Bearer DIN_SERVICE_ROLE_KEY", "Content-Type": "application/json"}'::jsonb,
+      url := 'https://blyroacvazagxgfbixlb.supabase.co/functions/v1/generate-briefing',
+      headers := '{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJseXJvYWN2YXphZ3hnZmJpeGxiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA0NDI4MiwiZXhwIjoyMDg4NjIwMjgyfQ.c_W4f_XIdOC2lrgXqJSf_fxspmez3pWnRropWiFrDos", "Content-Type": "application/json"}'::jsonb,
       body := '{}'::jsonb
     );
   $$
@@ -60,8 +60,8 @@ SELECT cron.schedule(
   '0 7 * * *',  -- Varje dag 07:00
   $$
     SELECT net.http_post(
-      url := 'DITT_PROJEKT_URL/functions/v1/send-notifications',
-      headers := '{"Authorization": "Bearer DIN_SERVICE_ROLE_KEY", "Content-Type": "application/json"}'::jsonb,
+      url := 'https://blyroacvazagxgfbixlb.supabase.co/functions/v1/send-notifications',
+      headers := '{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJseXJvYWN2YXphZ3hnZmJpeGxiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA0NDI4MiwiZXhwIjoyMDg4NjIwMjgyfQ.c_W4f_XIdOC2lrgXqJSf_fxspmez3pWnRropWiFrDos", "Content-Type": "application/json"}'::jsonb,
       body := '{}'::jsonb
     );
   $$

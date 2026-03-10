@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       `[Notifications] ${notifications.length} notifieringar att skicka`
     );
 
-    // --- Steg 2: Hämta mottagarnas e-post ---
+    // --- Steg 2: Hämta mottagarnas e-post + preferences ---
     const profileIds = [
       ...new Set(notifications.map((n: Notification) => n.profile_id)),
     ];
@@ -104,11 +104,46 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Hämta user preferences för att respektera inställningar
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, notification_preferences")
+      .in("id", profileIds);
+
+    const prefsMap = new Map<string, Record<string, unknown>>();
+    for (const p of profiles ?? []) {
+      prefsMap.set(p.id, p.notification_preferences || {});
+    }
+
+    // Filtrera bort notifieringar användaren stängt av
+    const filteredNotifications = (notifications as Notification[]).filter((n) => {
+      const prefs = prefsMap.get(n.profile_id);
+      if (!prefs) return true; // Ingen prefs = skicka allt
+      if (prefs.enabled === false) return false;
+      if (n.type === "briefing" && prefs.weekly_briefing === false) return false;
+      if (n.type === "alert" && prefs.acute_alerts === false) return false;
+      if (n.type === "digest" && prefs.trend_digest === false) return false;
+      return true;
+    });
+
+    // Markera filtrerade som skippade
+    const skippedIds = (notifications as Notification[])
+      .filter((n) => !filteredNotifications.includes(n))
+      .map((n) => n.id);
+
+    if (skippedIds.length > 0) {
+      await supabase
+        .from("notification_queue")
+        .update({ status: "skipped", error_message: "User preference disabled" })
+        .in("id", skippedIds);
+      console.log(`[Notifications] ${skippedIds.length} skippade pga användarpreferenser`);
+    }
+
     // --- Steg 3: Skicka e-post ---
     let sent = 0;
     let failed = 0;
 
-    for (const notification of notifications as Notification[]) {
+    for (const notification of filteredNotifications) {
       const email = emailMap.get(notification.profile_id);
 
       if (!email) {
@@ -206,8 +241,8 @@ function wrapInTemplate(subject: string, body: string): string {
 <html lang="sv">
 <head><meta charset="utf-8"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1a1a1a;">
-  <div style="border-bottom: 3px solid #1e6b8a; padding-bottom: 16px; margin-bottom: 24px;">
-    <h1 style="font-size: 20px; margin: 0; color: #1e6b8a;">OmvärldsRadar</h1>
+  <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 16px; margin-bottom: 24px;">
+    <h1 style="font-size: 20px; margin: 0; color: #3b82f6;">OmvärldsRadar</h1>
     <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0;">AI-driven omvärldsbevakning för offentlig sektor</p>
   </div>
 
@@ -219,7 +254,7 @@ function wrapInTemplate(subject: string, body: string): string {
 
   <div style="border-top: 1px solid #e5e7eb; margin-top: 32px; padding-top: 16px; font-size: 12px; color: #9ca3af;">
     <p>Detta mail skickades automatiskt av OmvärldsRadar.</p>
-    <p>Hantera dina notifieringsinställningar på <a href="https://omvarldsradar.criteroconsulting.se/settings" style="color: #1e6b8a;">omvarldsradar.criteroconsulting.se/settings</a></p>
+    <p>Hantera dina notifieringsinställningar på <a href="https://omvarldsradar.criteroconsulting.se/settings" style="color: #3b82f6;">omvarldsradar.criteroconsulting.se/settings</a></p>
     <p style="margin-top: 8px;">Critero Consulting AB &middot; Curago AB</p>
   </div>
 </body>

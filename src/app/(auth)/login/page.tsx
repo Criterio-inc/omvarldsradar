@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Radar } from "lucide-react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,9 +74,13 @@ function LoginForm() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand)]">
-              <Radar className="h-6 w-6 text-white" />
-            </div>
+            <Image
+              src="/omvarldsradar-logo.png"
+              alt="OmvärldsRadar"
+              width={44}
+              height={44}
+              className="rounded-xl"
+            />
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               OmvärldsRadar
             </h1>

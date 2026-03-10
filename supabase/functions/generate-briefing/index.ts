@@ -161,14 +161,22 @@ ${articlesSummary}`;
 
     console.log(`[Briefing] Sparad: ${briefingTitle}`);
 
-    // --- Steg 5: Skapa notifieringar ---
+    // --- Steg 5: Skapa notifieringar (respekterar weekly_briefing pref) ---
     const { data: subscribers } = await supabase
       .from("profiles")
-      .select("id, full_name, notification_preferences")
-      .not("notification_preferences->enabled", "eq", false);
+      .select("id, full_name, notification_preferences");
 
-    if (subscribers && subscribers.length > 0) {
-      const notifications = subscribers.map((sub) => ({
+    // Filtrera: bara de som har weekly_briefing aktiverad
+    const eligibleSubscribers = (subscribers ?? []).filter((sub) => {
+      const prefs = sub.notification_preferences;
+      if (!prefs) return true; // Default: skicka
+      if (prefs.enabled === false) return false;
+      if (prefs.weekly_briefing === false) return false;
+      return true;
+    });
+
+    if (eligibleSubscribers.length > 0) {
+      const notifications = eligibleSubscribers.map((sub) => ({
         profile_id: sub.id,
         type: "briefing" as const,
         subject: briefingTitle,
@@ -188,7 +196,7 @@ ${articlesSummary}`;
       title: briefingTitle,
       articles_included: articles.length,
       categories_covered: categoriesCovered,
-      subscribers_notified: subscribers?.length ?? 0,
+      subscribers_notified: eligibleSubscribers.length,
       duration_ms: Date.now() - startTime,
     };
 
