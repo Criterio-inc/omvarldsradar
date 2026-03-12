@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client"; // Används för logout
 import {
   LayoutDashboard,
   Newspaper,
@@ -182,39 +182,16 @@ export default function DashboardLayout({
   useEffect(() => {
     async function loadUser() {
       try {
-        const supabase = createClient();
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (!authUser) return;
-
-        // Hämta profil separat från org för att undvika JOIN-problem med RLS
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("full_name, role, org_id")
-          .eq("id", authUser.id)
-          .single();
-
-        if (profileError) {
-          console.error("[Layout] Profile load error:", profileError.message);
-        }
-
-        const role = profile?.role || "viewer";
-        const name = profile?.full_name || authUser.email?.split("@")[0] || "";
-        const initials = name
-          ? name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
-          : (authUser.email || "").slice(0, 2).toUpperCase();
-
-        // Hämta org-namn separat
-        let org = "";
-        if (profile?.org_id) {
-          const { data: orgData } = await supabase
-            .from("organizations")
-            .select("name")
-            .eq("id", profile.org_id)
-            .single();
-          org = orgData?.name || "";
-        }
-
-        setUser({ name, initials, org, role });
+        // Hämta profil via server-side API (kringgår RLS-problem)
+        const res = await fetch("/api/user/profile");
+        if (!res.ok) return;
+        const data = await res.json();
+        setUser({
+          name: data.name || "",
+          initials: data.initials || "",
+          org: data.org || "",
+          role: data.role || "viewer",
+        });
       } catch (err) {
         console.error("[Layout] User load error:", err);
       }

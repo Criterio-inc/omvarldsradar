@@ -12,6 +12,7 @@ import {
   Rss,
   Loader2,
   Info,
+  Star,
 } from "lucide-react";
 import {
   Card,
@@ -61,6 +62,10 @@ function getGreeting(): string {
   return "God natt";
 }
 
+interface UserPrefs {
+  categories: string[];
+}
+
 export default function DashboardPage() {
   const weekNumber = getISOWeekNumber();
   const greeting = getGreeting();
@@ -68,13 +73,34 @@ export default function DashboardPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userPrefs, setUserPrefs] = useState<UserPrefs | null>(null);
+
+  // Ladda användarpreferenser
+  useEffect(() => {
+    async function loadPrefs() {
+      try {
+        const res = await fetch("/api/notifications/preferences");
+        if (res.ok) {
+          const data = await res.json();
+          const prefs = data.preferences;
+          if (prefs) {
+            setUserPrefs({ categories: prefs.categories ?? [] });
+          }
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    loadPrefs();
+  }, []);
 
   useEffect(() => {
     async function load() {
       try {
+        // Hämta fler artiklar så vi kan filtrera och ändå visa 5
         const [s, a] = await Promise.all([
           fetchDashboardStats(),
-          fetchLatestArticles(5),
+          fetchLatestArticles(30),
         ]);
         setStats(s);
         setArticles(a);
@@ -86,6 +112,22 @@ export default function DashboardPage() {
     }
     load();
   }, []);
+
+  // Filtrera och prioritera artiklar baserat på användarens fokusområden
+  const hasPrefs = userPrefs && userPrefs.categories.length > 0;
+
+  function isRelevantToUser(article: Article): boolean {
+    if (!userPrefs || userPrefs.categories.length === 0) return true;
+    return !!(article.ai_category && userPrefs.categories.includes(article.ai_category));
+  }
+
+  // Sortera: relevanta artiklar först, sedan resten. Visa max 5.
+  const displayedArticles = hasPrefs
+    ? [
+        ...articles.filter(isRelevantToUser),
+        ...articles.filter((a) => !isRelevantToUser(a)),
+      ].slice(0, 5)
+    : articles.slice(0, 5);
 
   // Build trend data from real articles
   const trendData = articles.length > 0
@@ -135,7 +177,9 @@ export default function DashboardPage() {
         {/* Latest insights */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Senaste insikter</h2>
+            <h2 className="text-lg font-semibold">
+              {hasPrefs ? "Dina insikter" : "Senaste insikter"}
+            </h2>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/feed">
                 Visa alla <ArrowRight className="ml-1 h-4 w-4" />
@@ -147,7 +191,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : articles.length === 0 ? (
+          ) : displayedArticles.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
                 <Info className="h-10 w-10 text-muted-foreground/50" />
@@ -166,11 +210,19 @@ export default function DashboardPage() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {articles.map((article) => (
+              {displayedArticles.map((article) => {
+                const isRelevant = hasPrefs && isRelevantToUser(article);
+                return (
                 <Link key={article.id} href={`/article/${article.id}`}>
-                  <Card className="transition-shadow hover:shadow-md cursor-pointer">
+                  <Card className={`transition-shadow hover:shadow-md cursor-pointer ${isRelevant ? "ring-1 ring-primary/20" : ""}`}>
                     <CardContent className="space-y-2.5">
                       <div className="flex flex-wrap items-center gap-2">
+                        {isRelevant && (
+                          <Badge className="bg-primary/10 text-primary border-primary/20 text-[11px]">
+                            <Star className="mr-0.5 h-3 w-3 fill-current" />
+                            Relevant
+                          </Badge>
+                        )}
                         {article.ai_category && (
                           <Badge
                             variant="outline"
@@ -259,7 +311,8 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
