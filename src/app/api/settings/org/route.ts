@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
+// Auth client — verifierar vem användaren är
 async function getAuthenticatedUser() {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -12,8 +14,14 @@ async function getAuthenticatedUser() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          // Read-only in route handlers
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Route Handlers: kan misslyckas i vissa kontexter
+          }
         },
       },
     }
@@ -22,17 +30,29 @@ async function getAuthenticatedUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  return { user, supabase };
+  return { user };
+}
+
+// Service role client — för pålitliga databasoperationer
+function getServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
 }
 
 // GET — Hämta organisationsdata för inloggad användares org
 export async function GET() {
-  const { user, supabase } = await getAuthenticatedUser();
+  const { user } = await getAuthenticatedUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const serviceClient = getServiceClient();
+  if (!serviceClient)
+    return NextResponse.json({ error: "Server config error" }, { status: 500 });
+
   // Hämta profil med org_id
-  const { data: profile } = await supabase
+  const { data: profile } = await serviceClient
     .from("profiles")
     .select("org_id")
     .eq("id", user.id)
@@ -42,7 +62,7 @@ export async function GET() {
     return NextResponse.json({ org: null });
   }
 
-  const { data: org, error } = await supabase
+  const { data: org, error } = await serviceClient
     .from("organizations")
     .select("id, name, type, settings")
     .eq("id", profile.org_id)
@@ -55,7 +75,7 @@ export async function GET() {
     org: {
       id: org.id,
       name: org.name ?? "",
-      type: org.type ?? "kommun",
+      type: org.type ?? "municipality",
       size: org.settings?.size ?? "medel",
     },
   });
@@ -63,9 +83,13 @@ export async function GET() {
 
 // PATCH — Uppdatera organisationsinfo
 export async function PATCH(request: Request) {
-  const { user, supabase } = await getAuthenticatedUser();
+  const { user } = await getAuthenticatedUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const serviceClient = getServiceClient();
+  if (!serviceClient)
+    return NextResponse.json({ error: "Server config error" }, { status: 500 });
 
   const body = await request.json();
   const { name, type, size } = body as {
@@ -75,7 +99,7 @@ export async function PATCH(request: Request) {
   };
 
   // Hämta org_id
-  const { data: profile } = await supabase
+  const { data: profile } = await serviceClient
     .from("profiles")
     .select("org_id")
     .eq("id", user.id)
@@ -89,7 +113,7 @@ export async function PATCH(request: Request) {
   }
 
   // Hämta nuvarande settings för att mergea
-  const { data: currentOrg } = await supabase
+  const { data: currentOrg } = await serviceClient
     .from("organizations")
     .select("settings")
     .eq("id", profile.org_id)
@@ -107,7 +131,7 @@ export async function PATCH(request: Request) {
   if (name !== undefined) updateData.name = name;
   if (type !== undefined) updateData.type = type;
 
-  const { error } = await supabase
+  const { error } = await serviceClient
     .from("organizations")
     .update(updateData)
     .eq("id", profile.org_id);

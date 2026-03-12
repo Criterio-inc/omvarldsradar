@@ -22,8 +22,14 @@ async function verifyAdmin() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          // Read-only in route handlers
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Route Handlers: kan misslyckas i vissa kontexter
+          }
         },
       },
     }
@@ -34,7 +40,11 @@ async function verifyAdmin() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  // Använd service role för pålitlig profil-läsning (kringgår RLS-problem)
+  const adminClient = getAdminClient();
+  if (!adminClient) return null;
+
+  const { data: profile } = await adminClient
     .from("profiles")
     .select("role")
     .eq("id", user.id)

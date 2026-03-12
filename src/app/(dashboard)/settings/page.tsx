@@ -93,7 +93,7 @@ function getInitials(name: string, email: string): string {
 export default function SettingsPage() {
   // --- Organisation state ---
   const [orgName, setOrgName] = useState("");
-  const [orgType, setOrgType] = useState("kommun");
+  const [orgType, setOrgType] = useState("municipality");
   const [orgSize, setOrgSize] = useState("medel");
   const [orgLoading, setOrgLoading] = useState(true);
 
@@ -339,9 +339,10 @@ export default function SettingsPage() {
                         value={orgType}
                         onChange={(e) => setOrgType(e.target.value)}
                       >
-                        <option value="kommun">Kommun</option>
+                        <option value="municipality">Kommun</option>
                         <option value="region">Region</option>
-                        <option value="myndighet">Myndighet</option>
+                        <option value="government_agency">Myndighet</option>
+                        <option value="other">Annat / Företag</option>
                       </select>
                     </div>
                   </div>

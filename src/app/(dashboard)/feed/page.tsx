@@ -52,10 +52,13 @@ export default function FeedPage() {
           const data = await res.json();
           const prefs = data.preferences;
           if (prefs) {
-            setUserPrefs({
-              categories: prefs.categories ?? [],
-              action_levels: prefs.action_levels ?? [],
-            });
+            const cats = prefs.categories ?? [];
+            const levels = prefs.action_levels ?? [];
+            setUserPrefs({ categories: cats, action_levels: levels });
+            // Aktivera relevant-filter automatiskt om användaren har sparade preferenser
+            if (cats.length > 0) {
+              setShowRelevant(true);
+            }
           }
         }
       } catch {
@@ -90,13 +93,16 @@ export default function FeedPage() {
   // Check if article is relevant to user's preferences
   function isRelevantToUser(article: Article): boolean {
     if (!userPrefs) return true;
+    // Kategori-match: artikelns kategori måste finnas i användarens fokusområden
     const matchesCategory =
       userPrefs.categories.length === 0 ||
       (article.ai_category && userPrefs.categories.includes(article.ai_category));
+    // Åtgärdsnivå-match: valfritt extra filter
     const matchesAction =
       userPrefs.action_levels.length === 0 ||
       (article.ai_action && userPrefs.action_levels.includes(article.ai_action));
-    return !!(matchesCategory || matchesAction);
+    // Kräv kategori-match som grundfilter, åtgärdsnivå som bonus
+    return !!matchesCategory;
   }
 
   // Apply filters

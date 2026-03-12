@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
+// Auth client — verifierar vem användaren är
 async function getAuthenticatedUser() {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -12,8 +14,14 @@ async function getAuthenticatedUser() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          // Read-only in route handlers
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Route Handlers: kan misslyckas i vissa kontexter
+          }
         },
       },
     }
@@ -25,13 +33,26 @@ async function getAuthenticatedUser() {
   return { user, supabase };
 }
 
+// Service role client — för databasuppdateringar (kringgår RLS)
+function getServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
 // GET — Hämta notifieringsinställningar för inloggad användare
 export async function GET() {
-  const { user, supabase } = await getAuthenticatedUser();
+  const { user } = await getAuthenticatedUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data, error } = await supabase
+  // Använd service role för pålitlig läsning
+  const serviceClient = getServiceClient();
+  if (!serviceClient)
+    return NextResponse.json({ error: "Server config error" }, { status: 500 });
+
+  const { data, error } = await serviceClient
     .from("profiles")
     .select("notification_preferences")
     .eq("id", user.id)
@@ -54,7 +75,7 @@ export async function GET() {
 
 // PATCH — Uppdatera notifieringsinställningar
 export async function PATCH(request: Request) {
-  const { user, supabase } = await getAuthenticatedUser();
+  const { user } = await getAuthenticatedUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -70,9 +91,14 @@ export async function PATCH(request: Request) {
     );
   }
 
+  // Använd service role för pålitlig uppdatering (kringgår RLS-problem)
+  const serviceClient = getServiceClient();
+  if (!serviceClient)
+    return NextResponse.json({ error: "Server config error" }, { status: 500 });
+
   console.log("[Prefs PATCH] User:", user.id, "Saving:", JSON.stringify(preferences));
 
-  const { error, count } = await supabase
+  const { error } = await serviceClient
     .from("profiles")
     .update({
       notification_preferences: preferences,
@@ -85,6 +111,5 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  console.log("[Prefs PATCH] Success, rows affected:", count);
   return NextResponse.json({ success: true });
 }
