@@ -25,6 +25,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -466,13 +467,13 @@ export default function JamforPage() {
                                         name={kpi.title}
                                         radius={[4, 4, 0, 0]}
                                       >
-                                        {barData.map((_, idx) => (
-                                          <rect
+                                        {barData.map((entry, idx) => (
+                                          <Cell
                                             key={idx}
                                             fill={
                                               chartColors[
                                                 selectedMunicipalities.findIndex(
-                                                  (m) => m.name === barData[idx]?.name
+                                                  (m) => m.name === entry.name
                                                 )
                                               ] || chartColors[0]
                                             }

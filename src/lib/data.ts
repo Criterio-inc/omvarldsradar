@@ -404,14 +404,15 @@ export async function fetchCalendarArticles(options?: {
   if (!supabase) return [];
 
   try {
-    // TROVÄRDIGHETSFILTER: Bara artiklar med hög påverkan + relevans
-    // Kräver: ai_impact KRITISK/HÖG + ai_action Agera nu/Planera + ai_relevance >= 65
+    // TROVÄRDIGHETSFILTER: Artiklar som kräver handling
+    // ai_action = "Agera nu" eller "Planera" (inte passiva "Bevaka"/"Inspireras")
+    // ai_relevance >= 60 (hög kvalitetströskel)
+    // ai_impact: verkliga värden i DB = "Direkt reglering"/"Indirekt påverkan"/"Risk/hot"/"Möjlighet"
     let query = supabase
       .from("articles")
       .select("*, sources(name)")
-      .in("ai_impact", ["KRITISK", "HÖG"])
       .in("ai_action", ["Agera nu", "Planera"])
-      .gte("ai_relevance", 65)
+      .gte("ai_relevance", 60)
       .order("ai_relevance", { ascending: false })
       .limit(50);
 
@@ -426,19 +427,24 @@ export async function fetchCalendarArticles(options?: {
       const fetched = new Date(a.fetched_at);
       let urgency: CalendarArticle["urgency"];
 
-      // Urgency baseras på kombinationen av tidshorisont + impact + action
+      // Urgency baseras på ai_action + ai_timeframe + ai_impact
+      // ai_impact-värden i DB: "Direkt reglering", "Indirekt påverkan", "Risk/hot", "Möjlighet"
       if (
-        a.ai_impact === "KRITISK" &&
         a.ai_action === "Agera nu" &&
-        (a.ai_timeframe === "Akut (0-3 mån)" || a.ai_timeframe === "Kort sikt (3-12 mån)")
+        a.ai_timeframe === "Akut (0-3 mån)"
       ) {
         urgency = "akut";
       } else if (
-        a.ai_action === "Agera nu" ||
-        a.ai_timeframe === "Akut (0-3 mån)"
+        a.ai_action === "Agera nu" &&
+        (a.ai_timeframe === "Kort sikt (3-12 mån)" || a.ai_impact === "Direkt reglering")
       ) {
         urgency = "kort";
-      } else if (a.ai_timeframe === "Kort sikt (3-12 mån)") {
+      } else if (a.ai_action === "Agera nu") {
+        urgency = "kort"; // "Agera nu" är alltid minst kort
+      } else if (
+        a.ai_action === "Planera" &&
+        (a.ai_timeframe === "Akut (0-3 mån)" || a.ai_timeframe === "Kort sikt (3-12 mån)")
+      ) {
         urgency = "kort";
       } else if (a.ai_timeframe === "Medellång sikt (1-3 år)") {
         urgency = "medel";

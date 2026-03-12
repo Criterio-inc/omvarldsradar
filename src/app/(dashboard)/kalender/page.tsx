@@ -124,10 +124,10 @@ export default function KalenderPage() {
           Regelverkskalender
         </h1>
         <p className="text-muted-foreground">
-          Viktigaste händelserna som kräver åtgärd — filtrerade på hög påverkan och relevans
+          Händelser som kräver åtgärd — &ldquo;Agera nu&rdquo; och &ldquo;Planera&rdquo;
         </p>
         <p className="text-xs text-muted-foreground/70 mt-1">
-          Visar artiklar med kritisk/hög påverkan, åtgärdskrav och AI-relevans &ge; 65%. Tidshorisont baseras på AI-analys.
+          Visar artiklar med åtgärdskrav (Agera nu / Planera) och AI-relevans &ge; 60%. Tidshorisont baseras på AI-analys.
         </p>
       </div>
 
