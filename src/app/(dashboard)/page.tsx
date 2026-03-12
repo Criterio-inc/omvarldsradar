@@ -139,35 +139,39 @@ export default function DashboardPage() {
       {/* Greeting */}
       <div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{greeting}!</h1>
-        <p className="text-muted-foreground">
-          Vecka {weekNumber} &mdash; Här är din omvärldsbevakning
+        <p className="text-sm text-muted-foreground">
+          Vecka {weekNumber} &middot; Här är din omvärldsbevakning
         </p>
       </div>
 
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<FileText className="h-6 w-6 text-blue-600" />}
-          iconBg="bg-blue-100"
+          icon={<FileText className="h-5 w-5 text-blue-600" />}
+          iconBg="bg-blue-50 dark:bg-blue-500/10"
+          accent="stat-accent-blue"
           label="Artiklar totalt"
           value={loading ? null : stats?.totalArticles ?? 0}
         />
         <StatCard
-          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
-          iconBg="bg-red-100"
+          icon={<AlertTriangle className="h-5 w-5 text-red-600" />}
+          iconBg="bg-red-50 dark:bg-red-500/10"
+          accent="stat-accent-red"
           label="Kräver åtgärd"
           value={loading ? null : stats?.actionRequired ?? 0}
           valueClass={stats?.actionRequired ? "text-red-600" : undefined}
         />
         <StatCard
-          icon={<Database className="h-6 w-6 text-green-600" />}
-          iconBg="bg-green-100"
+          icon={<Database className="h-5 w-5 text-emerald-600" />}
+          iconBg="bg-emerald-50 dark:bg-emerald-500/10"
+          accent="stat-accent-green"
           label="Källor"
           value={loading ? null : `${stats?.activeSources ?? 0} / ${stats?.totalSources ?? 0}`}
         />
         <StatCard
-          icon={<Rss className="h-6 w-6 text-orange-600" />}
-          iconBg="bg-orange-100"
+          icon={<Rss className="h-5 w-5 text-orange-600" />}
+          iconBg="bg-orange-50 dark:bg-orange-500/10"
+          accent="stat-accent-orange"
           label="RSS-redo"
           value={loading ? null : stats?.rssReady ?? 0}
         />
@@ -214,7 +218,7 @@ export default function DashboardPage() {
                 const isRelevant = hasPrefs && isRelevantToUser(article);
                 return (
                 <Link key={article.id} href={`/article/${article.id}`}>
-                  <Card className={`transition-shadow hover:shadow-md cursor-pointer ${isRelevant ? "ring-1 ring-primary/20" : ""}`}>
+                  <Card className={`card-hover cursor-pointer ${isRelevant ? "ring-1 ring-primary/20 bg-primary/[0.02]" : ""}`}>
                     <CardContent className="space-y-2.5">
                       <div className="flex flex-wrap items-center gap-2">
                         {isRelevant && (
@@ -423,30 +427,32 @@ export default function DashboardPage() {
 function StatCard({
   icon,
   iconBg,
+  accent,
   label,
   value,
   valueClass,
 }: {
   icon: React.ReactNode;
   iconBg: string;
+  accent?: string;
   label: string;
   value: string | number | null;
   valueClass?: string;
 }) {
   return (
-    <Card>
+    <Card className={`card-hover ${accent || ""}`}>
       <CardContent className="flex items-center gap-4">
         <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
         >
           {icon}
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
           {value === null ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mt-1" />
           ) : (
-            <p className={`text-2xl font-bold ${valueClass ?? ""}`}>{value}</p>
+            <p className={`text-2xl font-bold tracking-tight ${valueClass ?? ""}`}>{value}</p>
           )}
         </div>
       </CardContent>

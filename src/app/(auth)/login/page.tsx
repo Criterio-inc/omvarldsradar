@@ -193,161 +193,173 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4">
-      <div className="w-full max-w-md">
+    <div className="login-bg flex min-h-screen items-center justify-center px-4 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute -bottom-1/4 -left-1/4 w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-blue-600/5 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo + titel */}
-        <div className="mb-8 flex flex-col items-center gap-4">
-          <Image
-            src="/omvarldsradar-logo.png"
-            alt="OmvärldsRadar"
-            width={80}
-            height={80}
-            className="rounded-2xl shadow-md"
-            priority
-          />
+        <div className="mb-8 flex flex-col items-center gap-5">
+          <div className="logo-glow">
+            <Image
+              src="/omvarldsradar-logo.png"
+              alt="OmvärldsRadar"
+              width={80}
+              height={80}
+              className="rounded-2xl ring-1 ring-white/20 shadow-2xl"
+              priority
+            />
+          </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-white">
               OmvärldsRadar
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1.5 text-sm text-blue-200/70">
               AI-driven omvärldsbevakning för offentlig sektor
             </p>
           </div>
         </div>
 
-        <Card>
-          {step === "email" ? (
-            <>
-              <CardHeader className="text-center">
-                <CardTitle className="text-lg">Logga in</CardTitle>
-                <CardDescription>
-                  Ange din e-postadress för att få en inloggningskod
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSendCode} className="flex flex-col gap-4">
-                  {error && (
-                    <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200">
-                      {error}
+        <div className="glass rounded-2xl shadow-2xl shadow-black/20">
+          <Card className="border-0 bg-transparent shadow-none">
+            {step === "email" ? (
+              <>
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-lg text-white">Logga in</CardTitle>
+                  <CardDescription className="text-white/60">
+                    Ange din e-postadress för att få en inloggningskod
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSendCode} className="flex flex-col gap-4">
+                    {error && (
+                      <div className="rounded-lg bg-red-500/10 border border-red-400/20 p-3 text-sm text-red-200">
+                        {error}
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="email"
+                        className="text-sm font-medium text-white/80"
+                      >
+                        E-postadress
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="namn@kommun.se"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoFocus
+                        className="h-11 bg-white/10 border-white/10 text-white placeholder:text-white/30 focus-visible:border-blue-400/50 focus-visible:ring-blue-400/20"
+                      />
                     </div>
-                  )}
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="email"
-                      className="text-sm font-medium text-foreground"
+                    <Button
+                      type="submit"
+                      className="w-full h-11 bg-blue-500 text-white font-medium hover:bg-blue-400 transition-colors shadow-lg shadow-blue-500/25"
+                      disabled={isLoading || !email}
                     >
-                      E-postadress
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="namn@kommun.se"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90"
-                    disabled={isLoading || !email}
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      {isLoading ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Skickar...
+                        </span>
+                      ) : (
+                        "Skicka inloggningskod"
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </>
+            ) : (
+              <>
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-lg text-white">Ange kod</CardTitle>
+                  <CardDescription className="text-white/60">
+                    Vi skickade en 8-siffrig kod till{" "}
+                    <span className="font-medium text-white/90">{email}</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-4">
+                    {error && (
+                      <div className="rounded-lg bg-red-500/10 border border-red-400/20 p-3 text-sm text-red-200">
+                        {error}
+                      </div>
+                    )}
+
+                    {/* 8-digit OTP input */}
+                    <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+                      {otpCode.map((digit, i) => (
+                        <input
+                          key={i}
+                          ref={(el) => { inputRefs.current[i] = el; }}
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(i, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                          disabled={isLoading}
+                          className="h-12 w-10 rounded-lg border-2 border-white/15 bg-white/10 text-center text-xl font-bold text-white shadow-xs transition-colors focus:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-400/20 disabled:opacity-50"
+                        />
+                      ))}
+                    </div>
+
+                    {isLoading && (
+                      <div className="flex justify-center">
+                        <svg className="h-5 w-5 animate-spin text-blue-400" viewBox="0 0 24 24" fill="none">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Skickar...
-                      </span>
-                    ) : (
-                      "Skicka inloggningskod"
+                      </div>
                     )}
-                  </Button>
-                </form>
-              </CardContent>
-            </>
-          ) : (
-            <>
-              <CardHeader className="text-center">
-                <CardTitle className="text-lg">Ange kod</CardTitle>
-                <CardDescription>
-                  Vi skickade en 8-siffrig kod till{" "}
-                  <span className="font-medium text-foreground">{email}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-4">
-                  {error && (
-                    <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200">
-                      {error}
+
+                    {/* Resend + change email */}
+                    <div className="flex flex-col items-center gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleResend}
+                        disabled={resendCooldown > 0 || isLoading}
+                        className="text-sm text-blue-300 hover:text-blue-200 hover:underline disabled:text-white/30 disabled:no-underline transition-colors"
+                      >
+                        {resendCooldown > 0
+                          ? `Skicka ny kod om ${resendCooldown}s`
+                          : "Skicka ny kod"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStep("email");
+                          setError(null);
+                          setOtpCode(["", "", "", "", "", "", "", ""]);
+                        }}
+                        className="text-sm text-white/40 hover:text-white/60 hover:underline transition-colors"
+                      >
+                        Byt e-postadress
+                      </button>
                     </div>
-                  )}
-
-                  {/* 6-digit OTP input */}
-                  <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
-                    {otpCode.map((digit, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => { inputRefs.current[i] = el; }}
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        disabled={isLoading}
-                        className="h-12 w-10 rounded-lg border-2 border-input bg-transparent text-center text-xl font-bold shadow-xs transition-colors focus:border-[var(--brand)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30 disabled:opacity-50"
-                      />
-                    ))}
                   </div>
-
-                  {isLoading && (
-                    <div className="flex justify-center">
-                      <svg className="h-5 w-5 animate-spin text-[var(--brand)]" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                    </div>
-                  )}
-
-                  {/* Resend + change email */}
-                  <div className="flex flex-col items-center gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleResend}
-                      disabled={resendCooldown > 0 || isLoading}
-                      className="text-sm text-[var(--brand)] hover:underline disabled:text-muted-foreground disabled:no-underline"
-                    >
-                      {resendCooldown > 0
-                        ? `Skicka ny kod om ${resendCooldown}s`
-                        : "Skicka ny kod"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep("email");
-                        setError(null);
-                        setOtpCode(["", "", "", "", "", "", "", ""]);
-                      }}
-                      className="text-sm text-muted-foreground hover:underline"
-                    >
-                      Byt e-postadress
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </>
-          )}
-        </Card>
+                </CardContent>
+              </>
+            )}
+          </Card>
+        </div>
 
         {isDevMode && (
           <div className="mt-4">
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full border-white/15 bg-white/5 text-white hover:bg-white/10"
               onClick={() => router.push("/")}
             >
               Demo-läge &rarr; Gå till dashboard
@@ -355,11 +367,17 @@ function LoginForm() {
           </div>
         )}
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p className="mt-6 text-center text-xs text-white/30">
           Genom att logga in godkänner du våra{" "}
-          <span className="underline cursor-pointer">användarvillkor</span> och{" "}
-          <span className="underline cursor-pointer">integritetspolicy</span>.
+          <span className="underline cursor-pointer hover:text-white/50 transition-colors">användarvillkor</span> och{" "}
+          <span className="underline cursor-pointer hover:text-white/50 transition-colors">integritetspolicy</span>.
         </p>
+
+        <div className="mt-8 text-center">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-white/20">
+            Critero Consulting AB &middot; Curago AB
+          </p>
+        </div>
       </div>
     </div>
   );

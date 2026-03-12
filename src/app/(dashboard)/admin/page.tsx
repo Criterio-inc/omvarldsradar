@@ -10,6 +10,8 @@ import {
   XCircle,
   ShieldCheck,
   AlertTriangle,
+  RefreshCw,
+  Rss,
 } from "lucide-react";
 import {
   Card,
@@ -70,6 +72,10 @@ export default function AdminPage() {
 
   // Delete
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Manual fetch
+  const [fetching, setFetching] = useState(false);
+  const [fetchResult, setFetchResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -220,6 +226,31 @@ export default function AdminPage() {
     setCsvEmails((prev) => prev.filter((e) => e !== email));
   }
 
+  // Manual fetch trigger
+  async function handleManualFetch() {
+    setFetching(true);
+    setFetchResult(null);
+    try {
+      const res = await fetch("/api/admin/fetch-sources", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setFetchResult({
+          success: true,
+          message: data.message || `Hämtning klar. ${data.newArticles ?? 0} nya artiklar.`,
+        });
+      } else {
+        setFetchResult({
+          success: false,
+          message: data.error || "Hämtning misslyckades",
+        });
+      }
+    } catch {
+      setFetchResult({ success: false, message: "Nätverksfel vid hämtning" });
+    } finally {
+      setFetching(false);
+    }
+  }
+
   // Auth gate: visa INGET förrän API-anropet svarar (förhindrar fladder)
   if (loading) {
     return (
@@ -263,6 +294,42 @@ export default function AdminPage() {
           Hantera användare och bjud in nya teammedlemmar
         </p>
       </div>
+
+      {/* Manual fetch */}
+      <Card className="border-l-4 border-l-blue-500">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
+              <Rss className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-medium">Hämta artiklar</p>
+              <p className="text-sm text-muted-foreground">
+                Trigga manuell hämtning från alla aktiva RSS-källor
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {fetchResult && (
+              <span className={`text-sm font-medium ${fetchResult.success ? "text-green-600" : "text-red-600"}`}>
+                {fetchResult.message}
+              </span>
+            )}
+            <Button
+              onClick={handleManualFetch}
+              disabled={fetching}
+              className="bg-blue-600 text-white hover:bg-blue-500 shrink-0"
+            >
+              {fetching ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-1.5 h-4 w-4" />
+              )}
+              Hämta nu
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Invite section */}
       <div className="grid gap-6 lg:grid-cols-2">
