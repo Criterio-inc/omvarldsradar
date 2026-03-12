@@ -91,3 +91,31 @@ export const categories = [
   "Samhälle & Medborgare",
   "Innovation & Omställning",
 ];
+
+// Kolada KPI-kategorier
+export const koladaCategories = [
+  "Ekonomi",
+  "Befolkning",
+  "Utbildning",
+  "Omsorg",
+  "Miljö & Samhälle",
+  "Arbetsmarknad",
+];
+
+export const koladaCategoryColors: Record<string, string> = {
+  Ekonomi: "bg-amber-100 text-amber-700 border-amber-200",
+  Befolkning: "bg-blue-100 text-blue-700 border-blue-200",
+  Utbildning: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  Omsorg: "bg-pink-100 text-pink-700 border-pink-200",
+  "Miljö & Samhälle": "bg-teal-100 text-teal-700 border-teal-200",
+  Arbetsmarknad: "bg-orange-100 text-orange-700 border-orange-200",
+};
+
+// Färger för jämförelsegrafer (max 5 kommuner)
+export const chartColors = [
+  "#3b82f6", // blue
+  "#f97316", // orange
+  "#10b981", // emerald
+  "#8b5cf6", // violet
+  "#ef4444", // red
+];

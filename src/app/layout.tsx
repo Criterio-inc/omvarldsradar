@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "OmvärldsRadar",
     description: "AI-driven omvärldsbevakning för svensk offentlig sektor",
-    images: [{ url: "/omvarldsradar-logo.png", width: 512, height: 512 }],
+    images: [{ url: "/omvarldsradar-icon.png", width: 512, height: 512 }],
     locale: "sv_SE",
     type: "website",
   },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "OmvärldsRadar",
     description: "AI-driven omvärldsbevakning för svensk offentlig sektor",
-    images: ["/omvarldsradar-logo.png"],
+    images: ["/omvarldsradar-icon.png"],
   },
 };
 

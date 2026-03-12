@@ -119,7 +119,7 @@ const aiCapabilities = [
   "Analyserar via tre tvärsgående linser: tidshorisont, påverkan och åtgärdskrav",
   "Genererar konsekvensanalys per kommunstorlek",
   "Föreslår konkreta åtgärder anpassade per verksamhetsområde",
-  "Genererar veckovisa briefings anpassade per roll",
+  "Genererar veckovisa uppdateringar anpassade per roll",
 ];
 
 const frameworks = [
@@ -317,7 +317,7 @@ export default function OmPage() {
             <Sparkles className="h-4 w-4 shrink-0 text-[var(--brand)]" />
             <span className="text-muted-foreground">
               OmvärldsRadar använder Anthropics Claude AI för analys, klassificering
-              och briefing-generering.
+              och uppdateringsgenerering.
             </span>
           </div>
         </CardContent>

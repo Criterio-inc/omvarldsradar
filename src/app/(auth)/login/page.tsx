@@ -206,7 +206,7 @@ function LoginForm() {
         <div className="mb-8 flex flex-col items-center gap-5">
           <div className="logo-glow">
             <Image
-              src="/omvarldsradar-logo.png"
+              src="/omvarldsradar-icon.png"
               alt="OmvärldsRadar"
               width={80}
               height={80}

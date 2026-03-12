@@ -65,7 +65,7 @@ export default function BriefingPage() {
         setSourceArticles(sources);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kunde inte ladda briefing-data");
+      setError(err instanceof Error ? err.message : "Kunde inte ladda uppdateringsdata");
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export default function BriefingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Briefing</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Din uppdatering</h1>
         <p className="text-muted-foreground">
           Sammanfattade insikter och rekommendationer
         </p>
@@ -101,7 +101,7 @@ export default function BriefingPage() {
         <TabsContent value="senaste" className="mt-6 space-y-6">
           {briefing ? (
             <>
-              {/* Briefing header */}
+              {/* Uppdatering header */}
               <Card className="border-l-4 border-l-[var(--brand)]">
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export default function BriefingPage() {
                 </CardHeader>
               </Card>
 
-              {/* Briefing content */}
+              {/* Uppdatering content */}
               <Card>
                 <CardContent>
                   <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground">
@@ -187,7 +187,7 @@ export default function BriefingPage() {
                       Källor & Läs mer
                     </CardTitle>
                     <CardDescription>
-                      {sourceArticles.length} artiklar låg till grund för denna briefing
+                      {sourceArticles.length} artiklar låg till grund för denna uppdatering
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -257,9 +257,9 @@ export default function BriefingPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Inbox className="mb-3 h-8 w-8 text-muted-foreground/50" />
-                <p className="font-medium">Inga briefings genererade ännu</p>
+                <p className="font-medium">Inga uppdateringar genererade ännu</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Briefings skapas automatiskt varje vecka baserat på bevakade
+                  Uppdateringar skapas automatiskt varje vecka baserat på bevakade
                   artiklar. Den första genereras när artiklar har hämtats.
                 </p>
               </CardContent>
@@ -381,7 +381,7 @@ export default function BriefingPage() {
                 <FileText className="mb-3 h-8 w-8 text-muted-foreground/50" />
                 <p className="font-medium">Inget arkiv ännu</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Tidigare briefings visas här efterhand.
+                  Tidigare uppdateringar visas här efterhand.
                 </p>
               </CardContent>
             </Card>

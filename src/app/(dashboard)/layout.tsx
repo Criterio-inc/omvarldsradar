@@ -22,6 +22,8 @@ import {
   ShieldCheck,
   Sun,
   Moon,
+  CalendarClock,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -48,8 +50,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const navItems = [
   { label: "Översikt", href: "/", icon: LayoutDashboard },
   { label: "Flödet", href: "/feed", icon: Newspaper },
-  { label: "Briefing", href: "/briefing", icon: Mail },
+  { label: "Uppdatering", href: "/briefing", icon: Mail },
+  { label: "Kalender", href: "/kalender", icon: CalendarClock },
   { label: "Trender", href: "/trends", icon: TrendingUp },
+  { label: "Jämför kommuner", href: "/jamfor", icon: BarChart3 },
   { label: "Sök", href: "/search", icon: Search },
 ];
 
@@ -72,7 +76,7 @@ function SidebarContent({ pathname, user }: { pathname: string; user: UserProfil
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 px-5">
         <Image
-          src="/omvarldsradar-logo.png"
+          src="/omvarldsradar-icon.png"
           alt="OmvärldsRadar"
           width={34}
           height={34}

@@ -35,8 +35,10 @@ import {
 import {
   fetchDashboardStats,
   fetchLatestArticles,
+  fetchCalendarArticles,
   type DashboardStats,
   type Article,
+  type CalendarArticle,
 } from "@/lib/data";
 import {
   categoryColors,
@@ -71,6 +73,7 @@ export default function DashboardPage() {
   const greeting = getGreeting();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [deadlines, setDeadlines] = useState<CalendarArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userPrefs, setUserPrefs] = useState<UserPrefs | null>(null);
@@ -98,12 +101,14 @@ export default function DashboardPage() {
     async function load() {
       try {
         // Hämta fler artiklar så vi kan filtrera och ändå visa 5
-        const [s, a] = await Promise.all([
+        const [s, a, d] = await Promise.all([
           fetchDashboardStats(),
           fetchLatestArticles(30),
+          fetchCalendarArticles().catch(() => [] as CalendarArticle[]),
         ]);
         setStats(s);
         setArticles(a);
+        setDeadlines(d.filter((x) => x.urgency === "akut" || x.urgency === "kort").slice(0, 5));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Kunde inte ladda data");
       } finally {
@@ -376,6 +381,44 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
+          {/* Kommande deadlines */}
+          {deadlines.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Kommande deadlines
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" asChild>
+                    <Link href="/kalender">Visa alla</Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {deadlines.map((d) => (
+                  <Link key={d.id} href={`/article/${d.id}`}>
+                    <div className="flex items-start gap-2 rounded-lg p-1.5 -mx-1.5 hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div
+                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                          d.urgency === "akut" ? "bg-red-500" : "bg-orange-500"
+                        }`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-1">
+                          {d.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {d.ai_action} &middot;{" "}
+                          {new Date(d.estimated_deadline).toLocaleDateString("sv-SE")}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Quick links */}
           <Card>
             <CardHeader>
@@ -391,7 +434,17 @@ export default function DashboardPage() {
               >
                 <Link href="/briefing">
                   <CalendarClock className="mr-2 h-4 w-4" />
-                  Senaste briefing
+                  Senaste uppdatering
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link href="/kalender">
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Regelverkskalender
                 </Link>
               </Button>
               <Button

@@ -298,6 +298,228 @@ export async function searchArticles(query: string, limit = 20): Promise<Article
   }
 }
 
+// --- Advanced Search ---
+
+export interface SearchFilters {
+  query?: string;
+  categories?: string[];
+  impacts?: string[];
+  actions?: string[];
+  timeframes?: string[];
+  dateFrom?: string;
+  dateTo?: string;
+  relevanceMin?: number;
+  sortBy?: "date" | "relevance";
+  limit?: number;
+  offset?: number;
+}
+
+export async function advancedSearchArticles(
+  filters: SearchFilters
+): Promise<{ articles: Article[]; count: number }> {
+  const supabase = getSupabase();
+  if (!supabase) return { articles: [], count: 0 };
+
+  try {
+    let query = supabase
+      .from("articles")
+      .select("*, sources(name)", { count: "exact" });
+
+    // Text search (ILIKE — can upgrade to FTS after migration)
+    if (filters.query?.trim()) {
+      const pattern = `%${filters.query.trim()}%`;
+      query = query.or(`title.ilike.${pattern},ai_summary.ilike.${pattern}`);
+    }
+
+    // Category filter
+    if (filters.categories?.length) {
+      query = query.in("ai_category", filters.categories);
+    }
+
+    // Impact filter
+    if (filters.impacts?.length) {
+      query = query.in("ai_impact", filters.impacts);
+    }
+
+    // Action filter
+    if (filters.actions?.length) {
+      query = query.in("ai_action", filters.actions);
+    }
+
+    // Timeframe filter
+    if (filters.timeframes?.length) {
+      query = query.in("ai_timeframe", filters.timeframes);
+    }
+
+    // Date range
+    if (filters.dateFrom) {
+      query = query.gte("fetched_at", filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      query = query.lte("fetched_at", filters.dateTo);
+    }
+
+    // Relevance threshold
+    if (filters.relevanceMin && filters.relevanceMin > 0) {
+      query = query.gte("ai_relevance", filters.relevanceMin);
+    }
+
+    // Sorting
+    if (filters.sortBy === "relevance") {
+      query = query.order("ai_relevance", { ascending: false, nullsFirst: false });
+    } else {
+      query = query.order("fetched_at", { ascending: false });
+    }
+
+    // Pagination
+    const limit = filters.limit ?? 20;
+    const offset = filters.offset ?? 0;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, count } = await query;
+
+    const articles = (data ?? []).map((a) => ({
+      ...a,
+      source_name: (a.sources as { name: string } | null)?.name ?? "Okänd",
+    }));
+
+    return { articles, count: count ?? 0 };
+  } catch (err) {
+    console.error("[data] advancedSearchArticles error:", err);
+    return { articles: [], count: 0 };
+  }
+}
+
+// --- Calendar / Regelverkskalender ---
+
+export interface CalendarArticle extends Article {
+  estimated_deadline: string;
+  urgency: "akut" | "kort" | "medel" | "lang";
+}
+
+export async function fetchCalendarArticles(options?: {
+  categories?: string[];
+}): Promise<CalendarArticle[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("articles")
+      .select("*, sources(name)")
+      .or(
+        'ai_action.eq.Agera nu,ai_action.eq.Planera,ai_timeframe.eq.Akut (0-3 mån),ai_timeframe.eq.Kort sikt (3-12 mån)'
+      )
+      .order("fetched_at", { ascending: false })
+      .limit(100);
+
+    if (options?.categories?.length) {
+      query = query.in("ai_category", options.categories);
+    }
+
+    const { data } = await query;
+    if (!data) return [];
+
+    // Calculate estimated deadline from timeframe + fetched_at
+    return data.map((a) => {
+      const fetched = new Date(a.fetched_at);
+      let deadline: Date;
+      let urgency: CalendarArticle["urgency"];
+
+      switch (a.ai_timeframe) {
+        case "Akut (0-3 mån)":
+          deadline = new Date(fetched.getTime() + 45 * 24 * 60 * 60 * 1000); // ~1.5 months
+          urgency = "akut";
+          break;
+        case "Kort sikt (3-12 mån)":
+          deadline = new Date(fetched.getTime() + 180 * 24 * 60 * 60 * 1000); // ~6 months
+          urgency = "kort";
+          break;
+        case "Medellång sikt (1-3 år)":
+          deadline = new Date(fetched.getTime() + 730 * 24 * 60 * 60 * 1000); // ~2 years
+          urgency = "medel";
+          break;
+        default:
+          deadline = new Date(fetched.getTime() + 1460 * 24 * 60 * 60 * 1000); // ~4 years
+          urgency = "lang";
+      }
+
+      // If action is "Agera nu", bump urgency
+      if (a.ai_action === "Agera nu" && urgency !== "akut") {
+        urgency = "akut";
+        deadline = new Date(fetched.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+
+      return {
+        ...a,
+        source_name: (a.sources as { name: string } | null)?.name ?? "Okänd",
+        estimated_deadline: deadline.toISOString(),
+        urgency,
+      };
+    }).sort((a, b) => new Date(a.estimated_deadline).getTime() - new Date(b.estimated_deadline).getTime());
+  } catch (err) {
+    console.error("[data] fetchCalendarArticles error:", err);
+    return [];
+  }
+}
+
+// --- Kolada ---
+
+export interface KoladaMunicipality {
+  code: string;
+  name: string;
+  type: string;
+}
+
+export interface KoladaKpi {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  unit: string | null;
+}
+
+export interface KoladaDataPoint {
+  kpi_id: string;
+  municipality_code: string;
+  year: number;
+  value: number | null;
+}
+
+export async function fetchKoladaMunicipalities(): Promise<KoladaMunicipality[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  try {
+    const { data } = await supabase
+      .from("kolada_municipalities")
+      .select("*")
+      .order("name");
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchKoladaKpis(category?: string): Promise<KoladaKpi[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("kolada_kpis")
+      .select("*")
+      .eq("active", true)
+      .order("category")
+      .order("title");
+    if (category) query = query.eq("category", category);
+    const { data } = await query;
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 // --- Trend data ---
 
 export interface TrendWeekly {

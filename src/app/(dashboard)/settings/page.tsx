@@ -556,7 +556,7 @@ export default function SettingsPage() {
               <CardContent className="flex items-start gap-3 pt-5">
                 <Mail className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Veckobriefing</p>
+                  <p className="text-sm font-medium">Veckouppdatering</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     AI-sammanfattning av veckans viktigaste omvärldsförändringar.
                     Skickas varje måndag morgon.
@@ -580,7 +580,7 @@ export default function SettingsPage() {
               <CardContent className="flex items-start gap-3 pt-5">
                 <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Trenddigest</p>
+                  <p className="text-sm font-medium">Trendsammanfattning</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Månatlig sammanfattning av trender och mönster i dina
                     bevakningsområden. Kommande funktion.
@@ -608,7 +608,7 @@ export default function SettingsPage() {
                 <>
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div>
-                      <p className="font-medium">Veckobriefing</p>
+                      <p className="font-medium">Veckouppdatering</p>
                       <p className="text-sm text-muted-foreground">
                         AI-sammanfattning varje måndag morgon
                       </p>
