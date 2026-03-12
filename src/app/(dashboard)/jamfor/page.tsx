@@ -60,14 +60,17 @@ interface DataPoint {
   value: number | null;
 }
 
-const CURRENT_YEAR = new Date().getFullYear();
-const TREND_YEARS = [
-  CURRENT_YEAR - 5,
-  CURRENT_YEAR - 4,
-  CURRENT_YEAR - 3,
-  CURRENT_YEAR - 2,
-  CURRENT_YEAR - 1,
-];
+// Kolada-data ligger typiskt 1-2 år efter. Senaste tillgängliga: ~2024
+const LATEST_KOLADA_YEAR = new Date().getFullYear() - 1;
+const DEFAULT_TREND_YEARS = Array.from(
+  { length: 6 },
+  (_, i) => LATEST_KOLADA_YEAR - 5 + i
+);
+// Tillgängliga år att välja från (2015 → senaste)
+const AVAILABLE_YEARS = Array.from(
+  { length: LATEST_KOLADA_YEAR - 2015 + 1 },
+  (_, i) => 2015 + i
+);
 
 export default function JamforPage() {
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
@@ -77,6 +80,8 @@ export default function JamforPage() {
   const [kpis, setKpis] = useState<KPI[]>([]);
   const [kpiData, setKpiData] = useState<Record<string, DataPoint[]>>({});
   const [activeCategory, setActiveCategory] = useState("Ekonomi");
+  const [yearFrom, setYearFrom] = useState(DEFAULT_TREND_YEARS[0]);
+  const [yearTo, setYearTo] = useState(DEFAULT_TREND_YEARS[DEFAULT_TREND_YEARS.length - 1]);
   const [loadingMunicipalities, setLoadingMunicipalities] = useState(true);
   const [loadingKpis, setLoadingKpis] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
@@ -120,7 +125,13 @@ export default function JamforPage() {
     load();
   }, [activeCategory]);
 
-  // Ladda data för valda kommuner + aktiva KPI:er
+  // Beräkna aktiva år baserat på val
+  const selectedYears = Array.from(
+    { length: yearTo - yearFrom + 1 },
+    (_, i) => yearFrom + i
+  );
+
+  // Ladda data för valda kommuner + aktiva KPI:er + valda år
   const loadKpiData = useCallback(async () => {
     if (selectedMunicipalities.length === 0 || kpis.length === 0) {
       setKpiData({});
@@ -129,7 +140,7 @@ export default function JamforPage() {
 
     setLoadingData(true);
     const munCodes = selectedMunicipalities.map((m) => m.code).join(",");
-    const years = TREND_YEARS.join(",");
+    const years = selectedYears.join(",");
     const newData: Record<string, DataPoint[]> = {};
 
     try {
@@ -151,7 +162,7 @@ export default function JamforPage() {
     } finally {
       setLoadingData(false);
     }
-  }, [selectedMunicipalities, kpis]);
+  }, [selectedMunicipalities, kpis, selectedYears.join(",")]);
 
   useEffect(() => {
     loadKpiData();
@@ -179,10 +190,10 @@ export default function JamforPage() {
     );
   }
 
-  // Förbered stapeldiagram-data (senaste året)
+  // Förbered stapeldiagram-data (senaste valda året)
   function getBarData(kpiId: string) {
     const points = kpiData[kpiId] || [];
-    const latestYear = Math.max(...TREND_YEARS);
+    const latestYear = yearTo;
     return selectedMunicipalities
       .map((m) => {
         const point = points.find(
@@ -196,10 +207,10 @@ export default function JamforPage() {
       .filter((d) => d.value !== null);
   }
 
-  // Förbered linjediagram-data (trend)
+  // Förbered linjediagram-data (trend över valda år)
   function getTrendData(kpiId: string) {
     const points = kpiData[kpiId] || [];
-    return TREND_YEARS.map((year) => {
+    return selectedYears.map((year) => {
       const row: Record<string, number | string | null> = { year: year.toString() };
       selectedMunicipalities.forEach((m) => {
         const point = points.find(
@@ -311,6 +322,43 @@ export default function JamforPage() {
             <p className="text-sm text-muted-foreground italic">
               Lägg till minst en kommun för att börja jämföra nyckeltal.
             </p>
+          )}
+
+          {/* Årtalsval */}
+          {selectedMunicipalities.length > 0 && (
+            <div className="flex items-center gap-3 pt-2 border-t">
+              <span className="text-sm font-medium text-muted-foreground">Period:</span>
+              <select
+                value={yearFrom}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setYearFrom(v);
+                  if (v > yearTo) setYearTo(v);
+                }}
+                className="h-8 rounded-md border bg-background px-2 text-sm"
+              >
+                {AVAILABLE_YEARS.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <span className="text-sm text-muted-foreground">—</span>
+              <select
+                value={yearTo}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setYearTo(v);
+                  if (v < yearFrom) setYearFrom(v);
+                }}
+                className="h-8 rounded-md border bg-background px-2 text-sm"
+              >
+                {AVAILABLE_YEARS.filter((y) => y >= yearFrom).map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <span className="text-xs text-muted-foreground">
+                ({selectedYears.length} år)
+              </span>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -440,7 +488,7 @@ export default function JamforPage() {
                                   <div className="flex items-center gap-1.5 mb-2">
                                     <TrendingUp className="h-3 w-3 text-muted-foreground" />
                                     <span className="text-xs text-muted-foreground font-medium">
-                                      5-årstrend
+                                      Trend {yearFrom}–{yearTo}
                                     </span>
                                   </div>
                                   <div className="h-[160px]">

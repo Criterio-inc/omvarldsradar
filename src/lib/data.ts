@@ -404,14 +404,16 @@ export async function fetchCalendarArticles(options?: {
   if (!supabase) return [];
 
   try {
+    // TROVÄRDIGHETSFILTER: Bara artiklar med hög påverkan + relevans
+    // Kräver: ai_impact KRITISK/HÖG + ai_action Agera nu/Planera + ai_relevance >= 65
     let query = supabase
       .from("articles")
       .select("*, sources(name)")
-      .or(
-        'ai_action.eq.Agera nu,ai_action.eq.Planera,ai_timeframe.eq.Akut (0-3 mån),ai_timeframe.eq.Kort sikt (3-12 mån)'
-      )
-      .order("fetched_at", { ascending: false })
-      .limit(100);
+      .in("ai_impact", ["KRITISK", "HÖG"])
+      .in("ai_action", ["Agera nu", "Planera"])
+      .gte("ai_relevance", 65)
+      .order("ai_relevance", { ascending: false })
+      .limit(50);
 
     if (options?.categories?.length) {
       query = query.in("ai_category", options.categories);
@@ -420,43 +422,55 @@ export async function fetchCalendarArticles(options?: {
     const { data } = await query;
     if (!data) return [];
 
-    // Calculate estimated deadline from timeframe + fetched_at
     return data.map((a) => {
       const fetched = new Date(a.fetched_at);
-      let deadline: Date;
       let urgency: CalendarArticle["urgency"];
 
-      switch (a.ai_timeframe) {
-        case "Akut (0-3 mån)":
-          deadline = new Date(fetched.getTime() + 45 * 24 * 60 * 60 * 1000); // ~1.5 months
-          urgency = "akut";
-          break;
-        case "Kort sikt (3-12 mån)":
-          deadline = new Date(fetched.getTime() + 180 * 24 * 60 * 60 * 1000); // ~6 months
-          urgency = "kort";
-          break;
-        case "Medellång sikt (1-3 år)":
-          deadline = new Date(fetched.getTime() + 730 * 24 * 60 * 60 * 1000); // ~2 years
-          urgency = "medel";
-          break;
-        default:
-          deadline = new Date(fetched.getTime() + 1460 * 24 * 60 * 60 * 1000); // ~4 years
-          urgency = "lang";
+      // Urgency baseras på kombinationen av tidshorisont + impact + action
+      if (
+        a.ai_impact === "KRITISK" &&
+        a.ai_action === "Agera nu" &&
+        (a.ai_timeframe === "Akut (0-3 mån)" || a.ai_timeframe === "Kort sikt (3-12 mån)")
+      ) {
+        urgency = "akut";
+      } else if (
+        a.ai_action === "Agera nu" ||
+        a.ai_timeframe === "Akut (0-3 mån)"
+      ) {
+        urgency = "kort";
+      } else if (a.ai_timeframe === "Kort sikt (3-12 mån)") {
+        urgency = "kort";
+      } else if (a.ai_timeframe === "Medellång sikt (1-3 år)") {
+        urgency = "medel";
+      } else {
+        urgency = "lang";
       }
 
-      // If action is "Agera nu", bump urgency
-      if (a.ai_action === "Agera nu" && urgency !== "akut") {
-        urgency = "akut";
-        deadline = new Date(fetched.getTime() + 30 * 24 * 60 * 60 * 1000);
+      // Uppskattad tidshorisont (ej deadline) — baserat på AI-analys
+      let estimatedMonths: number;
+      switch (urgency) {
+        case "akut": estimatedMonths = 2; break;
+        case "kort": estimatedMonths = 6; break;
+        case "medel": estimatedMonths = 24; break;
+        default: estimatedMonths = 48;
       }
+      const estimatedDate = new Date(
+        fetched.getTime() + estimatedMonths * 30 * 24 * 60 * 60 * 1000
+      );
 
       return {
         ...a,
         source_name: (a.sources as { name: string } | null)?.name ?? "Okänd",
-        estimated_deadline: deadline.toISOString(),
+        estimated_deadline: estimatedDate.toISOString(),
         urgency,
       };
-    }).sort((a, b) => new Date(a.estimated_deadline).getTime() - new Date(b.estimated_deadline).getTime());
+    }).sort((a, b) => {
+      // Sortera: akut först, sedan efter relevans
+      const urgencyOrder: Record<string, number> = { akut: 0, kort: 1, medel: 2, lang: 3 };
+      const urgDiff = (urgencyOrder[a.urgency] ?? 9) - (urgencyOrder[b.urgency] ?? 9);
+      if (urgDiff !== 0) return urgDiff;
+      return (b.ai_relevance ?? 0) - (a.ai_relevance ?? 0);
+    });
   } catch (err) {
     console.error("[data] fetchCalendarArticles error:", err);
     return [];

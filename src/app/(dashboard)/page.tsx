@@ -381,13 +381,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Kommande deadlines */}
+          {/* Kräver åtgärd */}
           {deadlines.length > 0 && (
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Kommande deadlines
+                    Kräver åtgärd
                   </CardTitle>
                   <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" asChild>
                     <Link href="/kalender">Visa alla</Link>
@@ -408,8 +408,8 @@ export default function DashboardPage() {
                           {d.title}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {d.ai_action} &middot;{" "}
-                          {new Date(d.estimated_deadline).toLocaleDateString("sv-SE")}
+                          {d.ai_impact} &middot; {d.ai_action} &middot;{" "}
+                          {new Date(d.fetched_at).toLocaleDateString("sv-SE")}
                         </p>
                       </div>
                     </div>

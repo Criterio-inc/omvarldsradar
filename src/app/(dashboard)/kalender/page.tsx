@@ -65,18 +65,16 @@ const urgencyConfig: Record<
   },
 };
 
-function formatDeadline(dateStr: string): string {
+function formatTimeHorizon(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
   const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 0) return "Förfallen";
-  if (diffDays === 0) return "Idag";
-  if (diffDays === 1) return "Imorgon";
-  if (diffDays < 7) return `Om ${diffDays} dagar`;
-  if (diffDays < 30) return `Om ${Math.ceil(diffDays / 7)} veckor`;
-  if (diffDays < 365) return `Om ${Math.ceil(diffDays / 30)} månader`;
-  return `Om ${Math.round(diffDays / 365 * 10) / 10} år`;
+  if (diffDays < 0) return "Passerad";
+  if (diffDays < 7) return `Inom ${diffDays} dagar`;
+  if (diffDays < 30) return `Inom ~${Math.ceil(diffDays / 7)} veckor`;
+  if (diffDays < 365) return `Inom ~${Math.ceil(diffDays / 30)} månader`;
+  return `Inom ~${Math.round(diffDays / 365 * 10) / 10} år`;
 }
 
 export default function KalenderPage() {
@@ -126,7 +124,10 @@ export default function KalenderPage() {
           Regelverkskalender
         </h1>
         <p className="text-muted-foreground">
-          Kommande deadlines och åtgärder sorterade efter tidshorisont
+          Viktigaste händelserna som kräver åtgärd — filtrerade på hög påverkan och relevans
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-1">
+          Visar artiklar med kritisk/hög påverkan, åtgärdskrav och AI-relevans &ge; 65%. Tidshorisont baseras på AI-analys.
         </p>
       </div>
 
@@ -249,7 +250,7 @@ export default function KalenderPage() {
                                     )}
                                   </div>
                                   <span className={`text-xs font-medium ${config.color}`}>
-                                    {formatDeadline(article.estimated_deadline)}
+                                    {formatTimeHorizon(article.estimated_deadline)}
                                   </span>
                                 </div>
 
@@ -267,9 +268,15 @@ export default function KalenderPage() {
                                   <span>{article.source_name}</span>
                                   <span>&middot;</span>
                                   <span>
-                                    Deadline:{" "}
-                                    {new Date(article.estimated_deadline).toLocaleDateString("sv-SE")}
+                                    Publicerad:{" "}
+                                    {new Date(article.fetched_at).toLocaleDateString("sv-SE")}
                                   </span>
+                                  {article.ai_relevance && (
+                                    <>
+                                      <span>&middot;</span>
+                                      <span>Relevans: {article.ai_relevance}%</span>
+                                    </>
+                                  )}
                                 </div>
                               </CardContent>
                             </Card>
@@ -329,7 +336,7 @@ export default function KalenderPage() {
                               <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
                                 <span>{article.source_name}</span>
                                 <span>&middot;</span>
-                                <span>{formatDeadline(article.estimated_deadline)}</span>
+                                <span>{formatTimeHorizon(article.estimated_deadline)}</span>
                                 {article.ai_category && (
                                   <>
                                     <span>&middot;</span>

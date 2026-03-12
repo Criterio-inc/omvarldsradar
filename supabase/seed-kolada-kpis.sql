@@ -1,49 +1,68 @@
 -- Kurerade Kolada KPI:er för OmvärldsRadar
+-- ALLA ID:n verifierade mot Kolada API 2026-03-11
 -- Kör i Supabase SQL Editor EFTER migrate-sprint5.sql
+
+-- Rensa gamla felaktiga KPI:er först
+DELETE FROM kolada_data WHERE kpi_id NOT IN (
+  'N03001','N03002','N00900','N03011','N03132',
+  'N01951','N01963','N01960','N00959','N00927',
+  'N15428','N15030','N10804','N15006','N15507',
+  'N20891','N21006','N20892','N20044','N31001',
+  'N07916','N00403','N07900','U07414','N07540',
+  'N02267','N01720','N00957','N00090','N01982'
+);
+DELETE FROM kolada_kpis WHERE id NOT IN (
+  'N03001','N03002','N00900','N03011','N03132',
+  'N01951','N01963','N01960','N00959','N00927',
+  'N15428','N15030','N10804','N15006','N15507',
+  'N20891','N21006','N20892','N20044','N31001',
+  'N07916','N00403','N07900','U07414','N07540',
+  'N02267','N01720','N00957','N00090','N01982'
+);
 
 INSERT INTO kolada_kpis (id, title, description, category, unit, active) VALUES
 
--- === EKONOMI ===
-('N00002', 'Resultat före extraordinära poster', 'Kommunens resultat som andel av skatter och bidrag', 'Ekonomi', 'procent', true),
-('N00003', 'Soliditet inklusive pensioner', 'Eget kapital inklusive pensionsåtaganden som andel av tillgångar', 'Ekonomi', 'procent', true),
-('N00900', 'Kommunal skattesats', 'Den kommunala skattesatsen', 'Ekonomi', 'kronor', true),
-('N00004', 'Nettokostnad per invånare', 'Kommunens totala nettokostnad per invånare', 'Ekonomi', 'kronor', true),
-('N00005', 'Investeringsvolym per invånare', 'Nettoinvesteringar per invånare i kronor', 'Ekonomi', 'kronor', true),
+-- === EKONOMI (5) ===
+('N03001', 'Resultat före extraordinära poster', 'Resultat som andel av skatt och generella statsbidrag', 'Ekonomi', 'procent', true),
+('N03002', 'Soliditet inkl pensionsåtaganden', 'Soliditet inklusive pensionsåtaganden i kommunen', 'Ekonomi', 'procent', true),
+('N00900', 'Skattesats totalt', 'Total kommunal och regional skattesats', 'Ekonomi', 'procent', true),
+('N03011', 'Nettokostnader per invånare', 'Verksamhetens nettokostnader enligt resultaträkning', 'Ekonomi', 'kr/inv', true),
+('N03132', 'Nettoinvesteringar per invånare', 'Nettoinvesteringar totalt i kommunen', 'Ekonomi', 'kr/inv', true),
 
--- === BEFOLKNING ===
-('N01951', 'Befolkning totalt', 'Totalt antal invånare i kommunen', 'Befolkning', 'antal', true),
-('N01960', 'Befolkningsförändring', 'Befolkningsförändring i procent under året', 'Befolkning', 'procent', true),
-('N02908', 'Andel invånare 0-17 år', 'Andel av befolkningen som är 0-17 år', 'Befolkning', 'procent', true),
-('N02909', 'Andel invånare 65+ år', 'Andel av befolkningen som är 65 år och äldre', 'Befolkning', 'procent', true),
-('N02914', 'Försörjningskvot', 'Antal personer 0-19 + 65+ per 100 personer 20-64 år', 'Befolkning', 'kvot', true),
+-- === BEFOLKNING (5) ===
+('N01951', 'Invånare totalt', 'Totalt antal invånare i kommunen', 'Befolkning', 'antal', true),
+('N01963', 'Befolkningsförändring', 'Befolkningsförändring sedan föregående år', 'Befolkning', 'procent', true),
+('N01960', 'Invånare 65+ år', 'Andel av befolkningen som är 65 år och äldre', 'Befolkning', 'procent', true),
+('N00959', 'Medelålder', 'Genomsnittlig ålder i kommunen', 'Befolkning', 'år', true),
+('N00927', 'Demografisk försörjningskvot', 'Antal unga+äldre per person i arbetsför ålder', 'Befolkning', 'kvot', true),
 
--- === UTBILDNING ===
-('N15002', 'Elever behöriga till gymnasieskolan', 'Andel elever i åk 9 behöriga till ett nationellt program', 'Utbildning', 'procent', true),
-('N15420', 'Andel behöriga lärare', 'Andel lärare med pedagogisk högskoleexamen i grundskolan', 'Utbildning', 'procent', true),
-('N15030', 'Barn i förskola 1-5 år', 'Andel inskrivna barn i förskola, 1-5 år', 'Utbildning', 'procent', true),
-('N15513', 'Kostnad per elev grundskola', 'Bruttokostnad per elev i kommunal grundskola', 'Utbildning', 'kronor', true),
-('N15817', 'Elever med godkänt i alla ämnen åk 9', 'Andel elever som uppnått kunskapskraven i alla ämnen', 'Utbildning', 'procent', true),
+-- === UTBILDNING (5) ===
+('N15428', 'Behöriga till yrkesprogram', 'Elever i åk 9 behöriga till yrkesprogram, hemkommun', 'Utbildning', 'procent', true),
+('N15030', 'Lärare med pedagogisk högskolexamen', 'Lärare med pedagogisk högskolexamen i grundskola åk 1-9', 'Utbildning', 'procent', true),
+('N10804', 'Barn i förskola/fritids', 'Barn 1-12 år inskrivna i förskola, fritidshem och pedagogisk omsorg', 'Utbildning', 'procent', true),
+('N15006', 'Kostnad grundskola per elev', 'Kostnad grundskola åk 1-9, hemkommun', 'Utbildning', 'kr/elev', true),
+('N15507', 'Meritvärde åk 9', 'Genomsnittligt meritvärde 17 ämnen, hemkommun', 'Utbildning', 'poäng', true),
 
--- === OMSORG ===
-('N26001', 'Nöjd med äldreomsorgen totalt', 'Andel av brukarna som är nöjda totalt med sin hemtjänst/sitt äldreboende', 'Omsorg', 'procent', true),
-('N26400', 'Kostnad per brukare äldreomsorg', 'Kostnad per brukare i ordinärt boende (hemtjänst)', 'Omsorg', 'kronor', true),
-('N26013', 'Väntetid till äldreboende', 'Genomsnittlig väntetid i antal dagar till särskilt boende', 'Omsorg', 'dagar', true),
-('N28001', 'Handläggningstid ekonomiskt bistånd', 'Genomsnittlig handläggningstid i antal dagar', 'Omsorg', 'dagar', true),
-('N26902', 'Andel personal med adekvat utbildning', 'Andel personal i äldreomsorg med adekvat utbildning', 'Omsorg', 'procent', true),
+-- === OMSORG (5) ===
+('N20891', 'Invånare 65+ med omsorg', 'Andel invånare 65+ i särskilt boende eller med hemtjänst', 'Omsorg', 'procent', true),
+('N21006', 'Kostnad hemtjänst per brukare', 'Kostnad hemtjänst äldreomsorg per hemtjänsttagare', 'Omsorg', 'kronor', true),
+('N20892', 'Invånare 80+ med omsorg', 'Andel invånare 80+ i särskilt boende eller med hemtjänst', 'Omsorg', 'procent', true),
+('N20044', 'Nettokostnad äldreomsorg', 'Nettokostnad omsorg om äldre och funktionsnedsättning', 'Omsorg', 'kr/inv', true),
+('N31001', 'Kostnad ekonomiskt bistånd', 'Kostnad ekonomiskt bistånd per invånare', 'Omsorg', 'kr/inv', true),
 
--- === MILJÖ & SAMHÄLLE ===
-('N07903', 'Hushållsavfall kg per invånare', 'Insamlat hushållsavfall i kg per invånare', 'Miljö & Samhälle', 'kg', true),
-('N07402', 'Andel förnybara bränslen i kollektivtrafik', 'Andel förnybara bränslen i kollektivtrafiken', 'Miljö & Samhälle', 'procent', true),
-('N07006', 'CO2-utsläpp per invånare', 'Koldioxidutsläpp per invånare inom kommunens gränser', 'Miljö & Samhälle', 'ton', true),
-('N22001', 'Färdigställda bostäder per 1000 inv', 'Antal nybyggda bostäder per 1000 invånare', 'Miljö & Samhälle', 'antal', true),
-('N07926', 'Energianvändning per invånare', 'Total energianvändning i MWh per invånare', 'Miljö & Samhälle', 'MWh', true),
+-- === MILJÖ & SAMHÄLLE (5) ===
+('N07916', 'Färdigställda bostäder', 'Färdigställda bostäder, ny- och ombyggnad per 1000 invånare', 'Miljö & Samhälle', 'antal/1000', true),
+('N00403', 'Ekologisk åkermark', 'Ekologiskt brukad åkermark som andel av total åkermark', 'Miljö & Samhälle', 'procent', true),
+('N07900', 'Bredband 100 Mbit/s', 'Tillgång till fast bredband om minst 100 Mbit/s', 'Miljö & Samhälle', 'procent', true),
+('U07414', 'Avfall till materialåtervinning', 'Kommunalt avfall insamlat för materialåtervinning inkl biologisk', 'Miljö & Samhälle', 'procent', true),
+('N07540', 'Anmälda brott totalt', 'Anmälda brott totalt per 100 000 invånare', 'Miljö & Samhälle', 'antal/100k', true),
 
--- === ARBETSMARKNAD ===
-('N00987', 'Sysselsättningsgrad 20-64 år', 'Andel förvärvsarbetande av befolkningen 20-64 år', 'Arbetsmarknad', 'procent', true),
-('N00988', 'Arbetslöshet 16-64 år', 'Andel öppet arbetslösa av befolkningen 16-64 år', 'Arbetsmarknad', 'procent', true),
-('N00941', 'Ohälsotal', 'Antal utbetalda nettodagar med sjukpenning och sjuk-/aktivitetsersättning per person 16-64 år', 'Arbetsmarknad', 'dagar', true),
-('N03101', 'Sjukfrånvaro kommunanställda', 'Sjukfrånvaro i procent av sammanlagd ordinarie arbetstid bland kommunanställda', 'Arbetsmarknad', 'procent', true),
-('N01963', 'Andel med eftergymnasial utbildning', 'Andel av befolkningen 25-64 år med eftergymnasial utbildning', 'Arbetsmarknad', 'procent', true)
+-- === ARBETSMARKNAD (5) ===
+('N02267', 'Sysselsättningsgrad 20-64 år', 'Andel sysselsatta av befolkningen 20-64 år', 'Arbetsmarknad', 'procent', true),
+('N01720', 'Arbetslöshet 16-64 år', 'Arbetslösa eller i åtgärd minst en dag under året', 'Arbetsmarknad', 'procent', true),
+('N00957', 'Ohälsotal', 'Utbetalda nettodagar sjukpenning och sjuk-/aktivitetsersättning per person 16-64 år', 'Arbetsmarknad', 'dagar', true),
+('N00090', 'Sjukfrånvaro kommunanställda', 'Total sjukfrånvaro bland kommunanställda', 'Arbetsmarknad', 'procent', true),
+('N01982', 'Eftergymnasial utbildning 25-64 år', 'Invånare 25-64 år med eftergymnasial utbildning', 'Arbetsmarknad', 'procent', true)
 
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
