@@ -24,7 +24,7 @@ export default function LoginPage() {
 
 function LoginForm() {
   const [email, setEmail] = useState("");
-  const [otpCode, setOtpCode] = useState(["", "", "", "", "", ""]);
+  const [otpCode, setOtpCode] = useState(["", "", "", "", "", "", "", ""]);
   const [step, setStep] = useState<"email" | "code">("email");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +85,7 @@ function LoginForm() {
       }
     } else {
       setStep("code");
-      setOtpCode(["", "", "", "", "", ""]);
+      setOtpCode(["", "", "", "", "", "", "", ""]);
       setResendCooldown(60);
       // Focus first input after render
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
@@ -94,7 +94,7 @@ function LoginForm() {
 
   // --- Step 2: Verify OTP code ---
   const handleVerifyCode = useCallback(async (code: string) => {
-    if (code.length !== 6) return;
+    if (code.length !== 8) return;
     setIsLoading(true);
     setError(null);
 
@@ -113,7 +113,7 @@ function LoginForm() {
         setError(error.message);
       }
       // Clear code inputs
-      setOtpCode(["", "", "", "", "", ""]);
+      setOtpCode(["", "", "", "", "", "", "", ""]);
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } else {
       // Success — redirect to dashboard
@@ -141,7 +141,7 @@ function LoginForm() {
       setError("Kunde inte skicka ny kod. Försök igen om en stund.");
     } else {
       setResendCooldown(60);
-      setOtpCode(["", "", "", "", "", ""]);
+      setOtpCode(["", "", "", "", "", "", "", ""]);
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     }
   }
@@ -155,13 +155,13 @@ function LoginForm() {
     setOtpCode(newCode);
 
     // Auto-advance to next input
-    if (digit && index < 5) {
+    if (digit && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
 
     // Auto-verify when all 6 digits entered
     const fullCode = newCode.join("");
-    if (fullCode.length === 6) {
+    if (fullCode.length === 8) {
       handleVerifyCode(fullCode);
     }
   }
@@ -175,17 +175,17 @@ function LoginForm() {
 
   function handleOtpPaste(e: React.ClipboardEvent) {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
     if (!pasted) return;
 
     const newCode = [...otpCode];
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       newCode[i] = pasted[i] || "";
     }
     setOtpCode(newCode);
 
     // Focus last filled input or verify
-    if (pasted.length === 6) {
+    if (pasted.length === 8) {
       handleVerifyCode(pasted);
     } else {
       inputRefs.current[pasted.length]?.focus();
@@ -273,7 +273,7 @@ function LoginForm() {
               <CardHeader className="text-center">
                 <CardTitle className="text-lg">Ange kod</CardTitle>
                 <CardDescription>
-                  Vi skickade en 6-siffrig kod till{" "}
+                  Vi skickade en 8-siffrig kod till{" "}
                   <span className="font-medium text-foreground">{email}</span>
                 </CardDescription>
               </CardHeader>
@@ -299,7 +299,7 @@ function LoginForm() {
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
                         disabled={isLoading}
-                        className="h-14 w-11 rounded-lg border-2 border-input bg-transparent text-center text-2xl font-bold shadow-xs transition-colors focus:border-[var(--brand)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30 disabled:opacity-50"
+                        className="h-12 w-10 rounded-lg border-2 border-input bg-transparent text-center text-xl font-bold shadow-xs transition-colors focus:border-[var(--brand)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30 disabled:opacity-50"
                       />
                     ))}
                   </div>
@@ -330,7 +330,7 @@ function LoginForm() {
                       onClick={() => {
                         setStep("email");
                         setError(null);
-                        setOtpCode(["", "", "", "", "", ""]);
+                        setOtpCode(["", "", "", "", "", "", "", ""]);
                       }}
                       className="text-sm text-muted-foreground hover:underline"
                     >
