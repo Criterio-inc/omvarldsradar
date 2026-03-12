@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReactMarkdown from "react-markdown";
 import {
   categoryColors,
   paverkanColors,
@@ -109,15 +110,42 @@ export default function BriefingPage() {
               {/* Briefing content */}
               <Card>
                 <CardContent>
-                  <div className="prose prose-sm max-w-none">
-                    {briefing.content.split("\n\n").map((paragraph, index) => (
-                      <p
-                        key={index}
-                        className="mb-4 leading-relaxed text-foreground last:mb-0"
-                      >
-                        {paragraph}
-                      </p>
-                    ))}
+                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => (
+                          <h1 className="text-xl font-bold mt-6 mb-3 text-foreground">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-lg font-semibold mt-5 mb-2 text-foreground border-b border-border pb-1">{children}</h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
+                        ),
+                        p: ({ children }) => (
+                          <p className="mb-3 leading-relaxed text-foreground">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="text-foreground leading-relaxed">{children}</li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-foreground">{children}</strong>
+                        ),
+                        a: ({ href, children }) => (
+                          <a href={href} target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {briefing.content}
+                    </ReactMarkdown>
                   </div>
                 </CardContent>
               </Card>

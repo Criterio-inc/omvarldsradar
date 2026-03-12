@@ -235,8 +235,75 @@ Deno.serve(async (req) => {
   }
 });
 
+// --- Markdown → HTML konverterare (utan externa beroenden) ---
+function markdownToHtml(md: string): string {
+  let html = md;
+
+  // Escapa HTML-tecken
+  html = html.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // Headings (## → h2, ### → h3, etc.)
+  html = html.replace(
+    /^### (.+)$/gm,
+    '<h3 style="font-size: 15px; font-weight: 600; margin-top: 20px; margin-bottom: 8px; color: #1a1a1a;">$1</h3>'
+  );
+  html = html.replace(
+    /^## (.+)$/gm,
+    '<h2 style="font-size: 16px; font-weight: 600; margin-top: 24px; margin-bottom: 10px; color: #1a1a1a; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px;">$1</h2>'
+  );
+  html = html.replace(
+    /^# (.+)$/gm,
+    '<h1 style="font-size: 18px; font-weight: 700; margin-top: 28px; margin-bottom: 12px; color: #1a1a1a;">$1</h1>'
+  );
+
+  // Bold: **text** → <strong>
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight: 600;">$1</strong>');
+
+  // Italic: *text* → <em>
+  html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
+
+  // Links: [text](url)
+  html = html.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" style="color: #3b82f6; text-decoration: underline;">$1</a>'
+  );
+
+  // Bullet lists: lines starting with - or *
+  html = html.replace(/^[\-\*] (.+)$/gm, '<li style="margin-bottom: 4px;">$1</li>');
+  // Wrap consecutive <li> blocks in <ul>
+  html = html.replace(
+    /(<li[^>]*>.*?<\/li>\n?)+/g,
+    (match) => `<ul style="padding-left: 20px; margin-bottom: 12px;">${match}</ul>`
+  );
+
+  // Numbered lists: lines starting with 1. 2. etc.
+  html = html.replace(/^\d+\. (.+)$/gm, '<li style="margin-bottom: 4px;">$1</li>');
+
+  // Horizontal rules: --- or ***
+  html = html.replace(/^[\-\*]{3,}$/gm, '<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />');
+
+  // Paragraphs: double newline → wrap in <p>
+  // Split by double newlines, wrap non-HTML blocks in <p>
+  const blocks = html.split(/\n\n+/);
+  html = blocks
+    .map((block) => {
+      const trimmed = block.trim();
+      if (!trimmed) return "";
+      // Don't wrap if already an HTML block
+      if (/^<(h[1-6]|ul|ol|li|hr|div|table|blockquote)/i.test(trimmed)) {
+        return trimmed;
+      }
+      // Replace single newlines with <br> inside paragraphs
+      return `<p style="margin-bottom: 12px;">${trimmed.replace(/\n/g, "<br>")}</p>`;
+    })
+    .join("\n");
+
+  return html;
+}
+
 // --- HTML e-postmall ---
 function wrapInTemplate(subject: string, body: string): string {
+  const htmlBody = markdownToHtml(body);
   return `<!DOCTYPE html>
 <html lang="sv">
 <head><meta charset="utf-8"></head>
@@ -249,7 +316,7 @@ function wrapInTemplate(subject: string, body: string): string {
   <h2 style="font-size: 18px; margin-bottom: 16px;">${subject}</h2>
 
   <div style="font-size: 14px; line-height: 1.6;">
-    ${body}
+    ${htmlBody}
   </div>
 
   <div style="border-top: 1px solid #e5e7eb; margin-top: 32px; padding-top: 16px; font-size: 12px; color: #9ca3af;">
