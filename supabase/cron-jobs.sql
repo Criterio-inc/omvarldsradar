@@ -1,31 +1,29 @@
 -- ============================================================
 -- OmvärldsRadar — pg_cron: Schemalagda agentiska flöden
--- Kör detta i Supabase SQL Editor EFTER att Edge Functions deployats
 --
--- INSTRUKTION:
---   1. Sök-och-ersätt DITT_PROJEKT_URLmed din Project URL
---      (t.ex. https://abcdefgh.supabase.co)
---   2. Sök-och-ersätt DIN_SERVICE_ROLE_KEY med din service_role key
---      (börjar med eyJ...)
---   3. Kör hela scriptet i SQL Editor
+-- INSTRUKTION FÖR PÄR:
+--   1. Gå till Supabase Dashboard → Database → Extensions
+--   2. Sök "pg_cron" → klicka Enable
+--   3. Sök "pg_net" → klicka Enable
+--   4. Gå till SQL Editor → klistra in ALLT nedan → klicka Run
+--   5. Verifiera: kör  SELECT * FROM cron.job;
 --
--- Tre pipelines:
---   1. Datainsamling  — var 6:e timme
---   2. Briefing       — söndag kväll 20:00
---   3. Notifieringar  — varje morgon 07:00
+-- Tre pipelines + cleanup:
+--   1. Datainsamling  — var 6:e timme (00, 06, 12, 18 UTC = 01, 07, 13, 19 sv)
+--   2. Briefing       — söndag kväll 20:00 UTC (21:00 svensk vintertid)
+--   3. Notifieringar  — varje morgon 07:00 UTC (08:00 svensk vintertid)
+--   4. Cleanup        — måndag 03:00 UTC
+--
+-- OBS: pg_cron kör i UTC. Svensk tid = UTC+1 (vinter) / UTC+2 (sommar)
 -- ============================================================
-
--- Aktivera pg_cron och pg_net (krävs för HTTP-anrop)
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-CREATE EXTENSION IF NOT EXISTS pg_net;
 
 -- ============================================================
 -- Pipeline 1: DATAINSAMLING (var 6:e timme)
--- Hämtar RSS-flöden från alla 25+ källor
+-- Hämtar RSS-flöden från alla 25+ källor + AI-klassificerar
 -- ============================================================
 SELECT cron.schedule(
   'fetch-all-sources',
-  '0 */6 * * *',  -- 00:00, 06:00, 12:00, 18:00
+  '0 */6 * * *',  -- 00:00, 06:00, 12:00, 18:00 UTC
   $$
     SELECT net.http_post(
       url := 'https://blyroacvazagxgfbixlb.supabase.co/functions/v1/fetch-sources',
@@ -41,7 +39,7 @@ SELECT cron.schedule(
 -- ============================================================
 SELECT cron.schedule(
   'generate-weekly-briefing',
-  '0 20 * * 0',  -- Söndag 20:00
+  '0 20 * * 0',  -- Söndag 20:00 UTC = 21:00 sv vintertid
   $$
     SELECT net.http_post(
       url := 'https://blyroacvazagxgfbixlb.supabase.co/functions/v1/generate-briefing',
@@ -57,7 +55,7 @@ SELECT cron.schedule(
 -- ============================================================
 SELECT cron.schedule(
   'send-pending-notifications',
-  '0 7 * * *',  -- Varje dag 07:00
+  '0 7 * * *',  -- Varje dag 07:00 UTC = 08:00 sv vintertid
   $$
     SELECT net.http_post(
       url := 'https://blyroacvazagxgfbixlb.supabase.co/functions/v1/send-notifications',
@@ -72,7 +70,7 @@ SELECT cron.schedule(
 -- ============================================================
 SELECT cron.schedule(
   'cleanup-old-fetch-logs',
-  '0 3 * * 1',  -- Måndag 03:00
+  '0 3 * * 1',  -- Måndag 03:00 UTC
   $$
     DELETE FROM fetch_log
     WHERE started_at < now() - interval '30 days';
@@ -80,6 +78,6 @@ SELECT cron.schedule(
 );
 
 -- ============================================================
--- Visa aktiva cron-jobb (kör detta efteråt för att verifiera)
+-- VERIFIERING — kör detta efteråt:
 -- ============================================================
--- SELECT * FROM cron.job;
+SELECT jobid, jobname, schedule, active FROM cron.job ORDER BY jobid;
