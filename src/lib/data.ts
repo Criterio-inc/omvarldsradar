@@ -219,6 +219,36 @@ export async function fetchUrgentArticles(limit = 5): Promise<Article[]> {
   }
 }
 
+// --- Briefing source articles ---
+
+export async function fetchBriefingArticles(
+  periodStart: string,
+  periodEnd: string,
+  limit = 50
+): Promise<Article[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  try {
+    const { data } = await supabase
+      .from("articles")
+      .select("*, sources(name)")
+      .gte("fetched_at", periodStart)
+      .lte("fetched_at", periodEnd)
+      .not("ai_category", "is", null)
+      .gte("ai_relevance", 50)
+      .order("ai_relevance", { ascending: false })
+      .limit(limit);
+
+    return (data ?? []).map((a) => ({
+      ...a,
+      source_name: (a.sources as { name: string } | null)?.name ?? "Okänd",
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // --- Article by ID ---
 
 export async function fetchArticleById(id: string): Promise<Article | null> {

@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CalendarDays,
   Clock,
+  ExternalLink,
   FileText,
   Mail,
   Loader2,
@@ -31,6 +32,7 @@ import {
   fetchLatestBriefing,
   fetchBriefingArchive,
   fetchUrgentArticles,
+  fetchBriefingArticles,
   type Briefing,
   type Article,
 } from "@/lib/data";
@@ -39,8 +41,10 @@ export default function BriefingPage() {
   const [briefing, setBriefing] = useState<Briefing | null>(null);
   const [archive, setArchive] = useState<Briefing[]>([]);
   const [urgentArticles, setUrgentArticles] = useState<Article[]>([]);
+  const [sourceArticles, setSourceArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAllSources, setShowAllSources] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -54,6 +58,12 @@ export default function BriefingPage() {
       setBriefing(b);
       setArchive(a);
       setUrgentArticles(u);
+
+      // Hämta källartiklar om vi har en briefing
+      if (b) {
+        const sources = await fetchBriefingArticles(b.period_start, b.period_end);
+        setSourceArticles(sources);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kunde inte ladda briefing-data");
     } finally {
@@ -166,6 +176,81 @@ export default function BriefingPage() {
                     </Badge>
                   ))}
                 </div>
+              )}
+
+              {/* Sources / Läs mer */}
+              {sourceArticles.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <ExternalLink className="h-4 w-4 text-[var(--brand)]" />
+                      Källor & Läs mer
+                    </CardTitle>
+                    <CardDescription>
+                      {sourceArticles.length} artiklar låg till grund för denna briefing
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {(showAllSources ? sourceArticles : sourceArticles.slice(0, 8)).map((article) => (
+                        <div key={article.id} className="flex items-start gap-3 group">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Link
+                                href={`/article/${article.id}`}
+                                className="font-medium text-sm hover:text-[var(--brand)] transition-colors line-clamp-1"
+                              >
+                                {article.title}
+                              </Link>
+                              {article.ai_category && (
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs shrink-0 ${
+                                    categoryColors[article.ai_category] ||
+                                    "bg-gray-100 text-gray-700 border-gray-200"
+                                  }`}
+                                >
+                                  {article.ai_category}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-muted-foreground">
+                                {article.source_name}
+                              </span>
+                              {article.url && (
+                                <a
+                                  href={article.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-[var(--brand)] hover:underline inline-flex items-center gap-0.5"
+                                >
+                                  Läs mer
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                          {article.ai_relevance && (
+                            <span className="text-xs text-muted-foreground shrink-0 tabular-nums">
+                              {article.ai_relevance}%
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {sourceArticles.length > 8 && (
+                      <button
+                        onClick={() => setShowAllSources(!showAllSources)}
+                        className="mt-4 text-sm text-[var(--brand)] hover:underline"
+                      >
+                        {showAllSources
+                          ? "Visa färre"
+                          : `Visa alla ${sourceArticles.length} artiklar`}
+                      </button>
+                    )}
+                  </CardContent>
+                </Card>
               )}
             </>
           ) : (
